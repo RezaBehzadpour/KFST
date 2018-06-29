@@ -5,7 +5,7 @@
  * For more information about KFST, please visit:
  *     http://kfst.uok.ac.ir/index.html
  *
- * Copyright (C) 2016 KFST development team at University of Kurdistan,
+ * Copyright (C) 2016-2018 KFST development team at University of Kurdistan,
  * Sanandaj, Iran.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -30,7 +30,9 @@ import java.awt.Desktop;
 import java.awt.Font;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ImageIcon;
@@ -38,6 +40,7 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 //import javax.swing.UIManager;
+//import javax.swing.UnsupportedLookAndFeelException;
 
 /**
  * This java class is used to create and show a panel for description of the
@@ -64,14 +67,14 @@ public class AboutPanel extends JDialog implements MouseListener {
         lbl_name = new JLabel(new ImageIcon(getClass().getResource("/KFST/gui/icons/logo_name.png")));
         lbl_name.setBounds(240, 10, 270, 90);
 
-        lbl_descrip = new JLabel("<html>Kurdistan Feature Selection Tool (KFST) is an open-source tool, developed completely in Java, for performing feature selection process in different areas of research.<html>");
+        lbl_descrip = new JLabel("<html>Kurdistan Feature Selection Tool (KFST) is an open-source tool, developed completely in Java, for performing feature selection processes in different areas of research.<html>");
         lbl_descrip.setBounds(260, 100, 375, 50);
 
         lbl_ver = new JLabel("Version:");
         lbl_ver.setFont(new Font("Tahoma", Font.BOLD, 11));
         lbl_ver.setBounds(260, 160, 70, 15);
 
-        lbl_verVal = new JLabel("0.1");
+        lbl_verVal = new JLabel("0.2.0");
         lbl_verVal.setBounds(340, 160, 100, 15);
 
         lbl_author = new JLabel("Author:");
@@ -91,7 +94,6 @@ public class AboutPanel extends JDialog implements MouseListener {
         lbl_homVal.setBounds(340, 210, 100, 15);
         lbl_homVal.setCursor(new Cursor(Cursor.HAND_CURSOR));
         lbl_homVal.addMouseListener(this);
-
 
         panel_footer = new JPanel();
         panel_footer.setBounds(0, 250, 670, 45);
@@ -117,13 +119,11 @@ public class AboutPanel extends JDialog implements MouseListener {
         lbl_footer_3 = new JLabel(".");
         lbl_footer_3.setBounds(612, 20, 5, 15);
 
-        
         panel_footer.add(lbl_footer_1);
         panel_footer.add(lbl_nameUni);
         panel_footer.add(lbl_footer_2);
         panel_footer.add(lbl_License);
         panel_footer.add(lbl_footer_3);
-
 
         setModalityType(ModalityType.APPLICATION_MODAL);
         setSize(670, 323);
@@ -155,13 +155,13 @@ public class AboutPanel extends JDialog implements MouseListener {
     private void openURL(String url) {
         try {
             Desktop.getDesktop().browse(new URI(url));
-        } catch (Exception ex) {
+        } catch (URISyntaxException | IOException ex) {
             Logger.getLogger(AboutPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     /**
-     * The listener method for receiving interesting mouse events on a 
+     * The listener method for receiving interesting mouse events on a
      * component. Invoked when the mouse button has been clicked on a component.
      *
      * @param e an mouse event
@@ -173,7 +173,7 @@ public class AboutPanel extends JDialog implements MouseListener {
         } else if (e.getSource().equals(lbl_homVal)) {
             openURL("http://kfst.uok.ac.ir");
         } else if (e.getSource().equals(lbl_nameUni)) {
-            openURL("http://en.uok.ac.ir/UOK.aspx");
+            openURL("http://international.uok.ac.ir/");
         } else if (e.getSource().equals(lbl_License)) {
             openURL("http://www.gnu.org/licenses/gpl.html");
         }
@@ -191,7 +191,8 @@ public class AboutPanel extends JDialog implements MouseListener {
 
     /**
      * The listener method for receiving interesting mouse events on a
-     * component. Invoked when the mouse button has been released on a component.
+     * component. Invoked when the mouse button has been released on a
+     * component.
      *
      * @param e an mouse event
      */
@@ -222,7 +223,7 @@ public class AboutPanel extends JDialog implements MouseListener {
 //    public static void main(String[] args) {
 //        try {
 //            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-//        } catch (Exception e) {
+//        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
 //            System.out.println("Error setting native LAF: " + e);
 //        }
 //

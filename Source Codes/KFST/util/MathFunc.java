@@ -5,7 +5,7 @@
  * For more information about KFST, please visit:
  *     http://kfst.uok.ac.ir/index.html
  *
- * Copyright (C) 2016 KFST development team at University of Kurdistan,
+ * Copyright (C) 2016-2018 KFST development team at University of Kurdistan,
  * Sanandaj, Iran.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,12 +23,15 @@
  */
 package KFST.util;
 
+import java.util.Arrays;
+import java.util.Random;
+
 /**
  * This java class is used to implement various utility methods for performing
  * basic statistical operation such as the mean and variance.
  * <p>
- * Also, some numeric operation on the matrices are provides such as multiple
- * of two matrices, subtract of two matrices, and transpose of the matrix.
+ * Also, some numeric operation on the matrices are provides such as multiple of
+ * two matrices, subtract of two matrices, and transpose of the matrix.
  * <p>
  * The methods in this class is contained brief description of the applications.
  *
@@ -40,7 +43,7 @@ public final class MathFunc {
      * returns the base 2 logarithm of a double value
      *
      * @param x a value
-     * 
+     *
      * @return the based 2 logarithm of x
      */
     public static double log2(double x) {
@@ -52,12 +55,44 @@ public final class MathFunc {
     }
 
     /**
+     * checks whether the input string is an integer value or not
+     *
+     * @param input input string
+     *
+     * @return true if the input string is an integer value
+     */
+    public static boolean isInteger(String input) {
+        try {
+            Integer.parseInt(input);
+        } catch (NumberFormatException ex) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * checks whether the input string is an double value or not
+     *
+     * @param input input string
+     *
+     * @return true if the input string is an double value
+     */
+    public static boolean isDouble(String input) {
+        try {
+            Double.parseDouble(input);
+        } catch (NumberFormatException ex) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * rounds the argument value to a double value with given number of
      * floating-point
      *
      * @param num a floating-point value
      * @param numFloatPoint the number of floating-point of the num
-     * 
+     *
      * @return the string value of the argument rounded with given number of
      * floating-point
      */
@@ -67,18 +102,76 @@ public final class MathFunc {
     }
 
     /**
+     * computes the sum of the elements of input array
+     *
+     * @param array the input array
+     *
+     * @return the sum of the elements of input array
+     */
+    public static double sum(double[] array) {
+        return sum(array, 0, array.length);
+    }
+
+    /**
+     * computes the sum of the elements of input array
+     *
+     * @param array the input array
+     *
+     * @return the sum of the elements of input array
+     */
+    public static int sum(int[] array) {
+        return sum(array, 0, array.length);
+    }
+
+    /**
+     * computes the sum of the elements of input array in the range of [start,
+     * end)
+     *
+     * @param array the input array
+     * @param start the first index of the input array
+     * @param end the second index of the input array (exclusive)
+     *
+     * @return the sum of the elements of input array
+     */
+    public static double sum(double[] array, int start, int end) {
+        double sumValue = 0;
+        for (int i = start; i < end; i++) {
+            sumValue += array[i];
+        }
+        return sumValue;
+    }
+
+    /**
+     * computes the sum of the elements of input array in the range of [start,
+     * end)
+     *
+     * @param array the input array
+     * @param start the first index of the input array
+     * @param end the second index of the input array (exclusive)
+     *
+     * @return the sum of the elements of input array
+     */
+    public static int sum(int[] array, int start, int end) {
+        int sumValue = 0;
+        for (int i = start; i < end; i++) {
+            sumValue += array[i];
+        }
+        return sumValue;
+    }
+
+    /**
      * computes the mean value of the data corresponding to a given column
      * (column index)
      *
      * @param data the input data
      * @param index the index of the given column
-     * 
+     *
      * @return the mean value of the data
      */
     public static double computeMean(double[][] data, int index) {
         double sum = 0;
-        for (int i = 0; i < data.length; i++) {
-            sum += data[i][index];
+        for (double[] sample : data) {
+            sum += sample[index];
         }
         return sum / data.length;
     }
@@ -87,14 +180,14 @@ public final class MathFunc {
      * calculates the average values of all columns
      *
      * @param array the input array
-     * 
+     *
      * @return the average values of columns of the input array
      */
     public static double[][] computeAverageArray(double[][] array) {
         double[][] tempAverage = new double[1][array[0].length];
         for (int j = 0; j < tempAverage[0].length; j++) {
-            for (int i = 0; i < array.length; i++) {
-                tempAverage[0][j] += array[i][j];
+            for (double[] row : array) {
+                tempAverage[0][j] += row[j];
             }
             tempAverage[0][j] = Double.parseDouble(MathFunc.roundDouble(tempAverage[0][j] / array.length, 3));
         }
@@ -108,15 +201,45 @@ public final class MathFunc {
      * @param data the input data
      * @param mean the mean value of the data corresponding to a given column
      * @param index the index of the given column
-     * 
+     *
      * @return the variance value of the data
      */
     public static double computeVariance(double[][] data, double mean, int index) {
+        return computeVariance(data, mean, index, data.length);
+    }
+
+    /**
+     * computes the variance value of the data corresponding to a given column
+     * (column index) based on a specific denominator value
+     *
+     * @param data the input data
+     * @param mean the mean value of the data corresponding to a given column
+     * @param index the index of the given column
+     * @param denominatorValue the denominator value of the final division
+     *
+     * @return the variance value of the data
+     */
+    public static double computeVariance(double[][] data, double mean, int index, double denominatorValue) {
         double sum = 0;
-        for (int i = 0; i < data.length; i++) {
-            sum += Math.pow(data[i][index] - mean, 2);
+        for (double[] sample : data) {
+            sum += Math.pow(sample[index] - mean, 2);
         }
-        return sum / data.length;
+        return sum / denominatorValue;
+    }
+
+    /**
+     * computes the standard deviation value of the data corresponding to a
+     * given column (column index) based on a specific denominator value
+     *
+     * @param data the input data
+     * @param mean the mean value of the data corresponding to a given column
+     * @param index the index of the given column
+     * @param denominatorValue the denominator value of the final division
+     *
+     * @return the standard deviation value of the data
+     */
+    public static double computeStandardDeviation(double[][] data, double mean, int index, double denominatorValue) {
+        return Math.sqrt(computeVariance(data, mean, index, denominatorValue));
     }
 
     /**
@@ -126,7 +249,7 @@ public final class MathFunc {
      * @param data the input data
      * @param index1 the index of the first feature
      * @param index2 the index of the second feature
-     * 
+     *
      * @return the similarity value
      */
     public static double computeSimilarity(double[][] data, int index1, int index2) {
@@ -134,10 +257,10 @@ public final class MathFunc {
         double sum2 = 0.0;
         double sum3 = 0.0;
 
-        for (int i = 0; i < data.length; i++) {
-            sum1 += (data[i][index1] * data[i][index2]);
-            sum2 += (data[i][index1] * data[i][index1]);
-            sum3 += (data[i][index2] * data[i][index2]);
+        for (double[] sample : data) {
+            sum1 += (sample[index1] * sample[index2]);
+            sum2 += (sample[index1] * sample[index1]);
+            sum3 += (sample[index2] * sample[index2]);
         }
 
         if (sum2 == 0 && sum3 == 0) {
@@ -150,10 +273,49 @@ public final class MathFunc {
     }
 
     /**
+     * computes the correlation value between two features using Pearson
+     * correlation coefficient
+     *
+     * @param data the input data
+     * @param index1 the index of the first feature
+     * @param index2 the index of the second feature
+     *
+     * @return the Pearson correlation coefficient value
+     */
+    public static double computePearsonCorCoef(double[][] data, int index1, int index2) {
+        double numerator = 0.0;
+        double denominator1 = 0.0;
+        double denominator2 = 0.0;
+        double meanColumn1 = computeMean(data, index1);
+        double meanColumn2 = computeMean(data, index2);
+
+        for (double[] sample : data) {
+            numerator += (sample[index1] - meanColumn1) * (sample[index2] - meanColumn2);
+            denominator1 += Math.pow(sample[index1] - meanColumn1, 2);
+            denominator2 += Math.pow(sample[index2] - meanColumn2, 2);
+        }
+
+        if (denominator1 == 0 && denominator2 == 0) {
+            return 1;
+        } else if (denominator1 == 0 || denominator2 == 0) {
+            return 0;
+        }
+
+        double result = numerator / (Math.sqrt(denominator1) * Math.sqrt(denominator2));
+        if (result > 1.0) {
+            return 1.0;
+        } else if (result < -1.0) {
+            return -1.0;
+        } else {
+            return result;
+        }
+    }
+
+    /**
      * calculates the error rate values based on the array of accuracies
      *
      * @param accuracy the input array from accuracies
-     * 
+     *
      * @return the error rate values
      */
     public static double[][] computeErrorRate(double[][] accuracy) {
@@ -171,7 +333,7 @@ public final class MathFunc {
      *
      * @param matrix1 the first input matrix
      * @param matrix2 the second input matrix
-     * 
+     *
      * @return a matrix based on the result of the multiple of two matrices
      */
     public static double[][] multMatrix(double[][] matrix1, double[][] matrix2) {
@@ -196,7 +358,7 @@ public final class MathFunc {
      *
      * @param matrix1 the first input matrix
      * @param matrix2 the second input matrix
-     * 
+     *
      * @return a matrix based on the result of the subtract of two matrices
      */
     public static double[][] subMatrix(double[][] matrix1, double[][] matrix2) {
@@ -215,7 +377,7 @@ public final class MathFunc {
      * computes the transpose of the input matrix
      *
      * @param matrix the input matrix
-     * 
+     *
      * @return a matrix based on the result of the transpose of the matrix
      */
     public static double[][] transMatrix(double[][] matrix) {
@@ -228,5 +390,174 @@ public final class MathFunc {
         }
 
         return transposeMatrix;
+    }
+
+    /**
+     * finds the minimum value of the input array
+     *
+     * @param array the input array
+     *
+     * @return a minimum value of the array
+     */
+    public static double findMinimumValue(double[] array) {
+        double min = array[0];
+        for (double item : array) {
+            if (item < min) {
+                min = item;
+            }
+        }
+        return min;
+    }
+
+    /**
+     * finds the minimum value of the input array and returns its index
+     *
+     * @param array the input array
+     *
+     * @return the index of the minimum value in the array
+     */
+    public static int findMinimumIndex(double[] array) {
+        int indexMin = 0;
+        double min = array[0];
+        for (int i = 1; i < array.length; i++) {
+            if (array[i] < min) {
+                min = array[i];
+                indexMin = i;
+            }
+        }
+        return indexMin;
+    }
+
+    /**
+     * changes the values of the two elements in the input array identified by
+     * firstIndex and secondIndex
+     *
+     * @param array the input array
+     * @param firstIndex the first index of the input array
+     * @param secondIndex the second index of the input array
+     */
+    public static void swap(int[] array, int firstIndex, int secondIndex) {
+        int temp = array[firstIndex];
+        array[firstIndex] = array[secondIndex];
+        array[secondIndex] = temp;
+    }
+
+    /**
+     * changes the values of the two elements in the input array identified by
+     * firstIndex and secondIndex
+     *
+     * @param <T> type of the array
+     * @param array the input array
+     * @param firstIndex the first index of the input array
+     * @param secondIndex the second index of the input array
+     */
+    public static <T> void swap(T[] array, int firstIndex, int secondIndex) {
+        T temp = array[firstIndex];
+        array[firstIndex] = array[secondIndex];
+        array[secondIndex] = temp;
+    }
+
+    /**
+     * changes the values of the two rows in the input array identified by
+     * firstIndex and secondIndex
+     *
+     * @param array the input array
+     * @param firstIndex the first index of the input array
+     * @param secondIndex the second index of the input array
+     */
+    public static void swap(double[][] array, int firstIndex, int secondIndex) {
+        double[] temp = Arrays.copyOf(array[firstIndex], array[firstIndex].length);
+        array[firstIndex] = Arrays.copyOf(array[secondIndex], array[secondIndex].length);
+        array[secondIndex] = Arrays.copyOf(temp, temp.length);
+    }
+
+    /**
+     * normalizes values of the vector
+     *
+     * @param vector the input vector
+     *
+     * @return the normalized values of the input vector
+     */
+    public static double[] normalizeVector(double[] vector) {
+        double magnitude = 0;
+        for (int i = 0; i < vector.length; i++) {
+            magnitude += (vector[i] * vector[i]);
+        }
+
+        if (magnitude == 0) {
+            return vector;
+        } else {
+            magnitude = Math.sqrt(magnitude);
+            for (int i = 0; i < vector.length; i++) {
+                vector[i] /= magnitude;
+            }
+            return vector;
+        }
+    }
+
+    /**
+     * shuffles a given array using Fisher–Yates shuffle Algorithm
+     *
+     * @param array the input array
+     */
+    public static void randomize(double[][] array) {
+        Random rand = new Random();
+        for (int i = array.length - 1; i > 0; i--) {
+            swap(array, i, rand.nextInt(i));
+        }
+    }
+
+    /**
+     * shuffles a given array using Fisher–Yates shuffle Algorithm
+     *
+     * @param <T> type of the input array
+     * @param array the input array
+     */
+    public static <T> void randomize(T[] array) {
+        Random rand = new Random();
+        for (int i = array.length - 1; i > 0; i--) {
+            swap(array, i, rand.nextInt(i));
+        }
+    }
+
+    /**
+     * generates a random number that is drawn from a uniform distribution in a
+     * specific interval.
+     *
+     * @param start the beginning number of the interval
+     * @param end the end number of the interval
+     *
+     * @return a generated random number in the specific interval
+     */
+    public static double generateRandNum(double start, double end) {
+        return generateRandNum(start, end, new Random());
+    }
+
+    /**
+     * generates a random double number that is drawn from a uniform
+     * distribution in a specific interval.
+     *
+     * @param start the beginning number of the interval
+     * @param end the end number of the interval
+     * @param rand the Random class for generating number
+     *
+     * @return a generated random double number in the specific interval
+     */
+    public static double generateRandNum(double start, double end, Random rand) {
+        return (rand.nextDouble() * (end - start)) + start;
+    }
+
+    /**
+     * generates a random integer number that is drawn from a uniform
+     * distribution in a specific interval.
+     *
+     * @param start the beginning number of the interval
+     * @param end the end number of the interval
+     * @param rand the Random class for generating number
+     *
+     * @return a generated random integer number in the specific interval
+     */
+    public static int generateRandNum(int start, int end, Random rand) {
+        return rand.nextInt((end - start) + 1) + start;
     }
 }

@@ -4,7 +4,7 @@ areas of research.
 For more information about KFST, please visit:
     http://kfst.uok.ac.ir/index.html
 
-Copyright (C) 2016 KFST development team at University of Kurdistan,
+Copyright (C) 2016-2018 KFST development team at University of Kurdistan,
 Sanandaj, Iran.
 
 This program is free software: you can redistribute it and/or modify

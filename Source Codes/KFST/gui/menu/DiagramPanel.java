@@ -5,7 +5,7 @@
  * For more information about KFST, please visit:
  *     http://kfst.uok.ac.ir/index.html
  *
- * Copyright (C) 2016 KFST development team at University of Kurdistan,
+ * Copyright (C) 2016-2018 KFST development team at University of Kurdistan,
  * Sanandaj, Iran.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -55,6 +55,7 @@ import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
 import javax.swing.ImageIcon;
 import javax.swing.JTextField;
+//import javax.swing.UnsupportedLookAndFeelException;
 
 /**
  * This java class is used to create and show the 2-D diagrams of the input
@@ -72,27 +73,27 @@ public class DiagramPanel extends JPanel implements ActionListener, MouseMotionL
     JMenuItem mi_close;
     JTextField txt_info;
     //----------------------------------------------
-    private String pathProject;
-    private double[][] listIteration;
-    private int[] listCases;
+    private final String PATH_PROJECT;
+    private final double[][] LIST_ITERATION;
+    private final int[] LIST_CASES;
     private ArrayList<TupleValues> axisValues;
-    private String nameMainPanel;
-    private String nameDiagram;
-    private String nameYAxis;
-    private String nameLgendLabel;
+    private final String NAME_MAIN_PANEL;
+    private final String NAME_DIAGRAM;
+    private final String NAME_Y_AXIS;
+    private final String NAME_LEGEND_LABEL;
     private int intervalYDimension = 7;
     private int maxValue;
     private int minValue;
     private double tempMaxValue;
     private double tempMinValue;
-    private int xDimensionStart = 80;
-    private int xDimensionEnd = 380;
-    private int yDimensionStart = 60;
-    private int yDimensionEnd = 280;
-    private int widthLegend = 100;
-    private int xDStartLegend = xDimensionEnd + 20;
-    private int yDStartLegeng = yDimensionStart + 10;
-    private Color[] colorSet = {new Color(192, 0, 0), //red color
+    private final int X_DIMENSION_START = 80;
+    private final int X_DIMENSION_END = 380;
+    private final int Y_DIMENSION_START = 60;
+    private final int Y_DIMENSION_END = 280;
+    private final int WIDTH_LEGEND = 100;
+    private final int X_D_START_LEGEND = X_DIMENSION_END + 20;
+    private final int Y_D_START_LEGEND = Y_DIMENSION_START + 10;
+    private final Color[] COLOR_SET = {new Color(192, 0, 0), //red color
         new Color(68, 114, 196), //blue color
         new Color(112, 173, 71), //green color
         new Color(255, 192, 0), //yellow color
@@ -117,14 +118,14 @@ public class DiagramPanel extends JPanel implements ActionListener, MouseMotionL
      */
     public DiagramPanel(double[][] arrayIteration, int[] arrayCases, String namePanel, String name, String nameY, String nameLegend, String path) {
         //sets the initial values
-        listIteration = arrayIteration;
-        listCases = arrayCases;
-        nameMainPanel = namePanel;
-        nameDiagram = name;
-        nameYAxis = nameY;
-        nameLgendLabel = nameLegend;
-        pathProject = path;
-        axisValues = new ArrayList<TupleValues>();
+        LIST_ITERATION = arrayIteration;
+        LIST_CASES = arrayCases;
+        NAME_MAIN_PANEL = namePanel;
+        NAME_DIAGRAM = name;
+        NAME_Y_AXIS = nameY;
+        NAME_LEGEND_LABEL = nameLegend;
+        PATH_PROJECT = path;
+        axisValues = new ArrayList<>();
         findMaxValue();
         findMinValue();
         maxValue = (int) (tempMaxValue);
@@ -183,7 +184,7 @@ public class DiagramPanel extends JPanel implements ActionListener, MouseMotionL
         menuBar.setBounds(0, 0, 530, 22);
         setBackground(Color.white);
 
-        f = new JFrame(nameMainPanel);
+        f = new JFrame(NAME_MAIN_PANEL);
         f.add(menuBar);
         f.add(txt_info);
         f.add(this);
@@ -200,11 +201,11 @@ public class DiagramPanel extends JPanel implements ActionListener, MouseMotionL
      * finds the maximum value of the input array
      */
     private void findMaxValue() {
-        tempMaxValue = listIteration[0][0];
-        for (int i = 0; i < listIteration.length; i++) {
-            for (int j = 0; j < listIteration[0].length; j++) {
-                if (listIteration[i][j] > tempMaxValue) {
-                    tempMaxValue = listIteration[i][j];
+        tempMaxValue = LIST_ITERATION[0][0];
+        for (int i = 0; i < LIST_ITERATION.length; i++) {
+            for (int j = 0; j < LIST_ITERATION[0].length; j++) {
+                if (LIST_ITERATION[i][j] > tempMaxValue) {
+                    tempMaxValue = LIST_ITERATION[i][j];
                 }
             }
         }
@@ -214,11 +215,11 @@ public class DiagramPanel extends JPanel implements ActionListener, MouseMotionL
      * finds the minimum value of the input array
      */
     private void findMinValue() {
-        tempMinValue = listIteration[0][0];
-        for (int i = 0; i < listIteration.length; i++) {
-            for (int j = 0; j < listIteration[0].length; j++) {
-                if (listIteration[i][j] < tempMinValue) {
-                    tempMinValue = listIteration[i][j];
+        tempMinValue = LIST_ITERATION[0][0];
+        for (int i = 0; i < LIST_ITERATION.length; i++) {
+            for (int j = 0; j < LIST_ITERATION[0].length; j++) {
+                if (LIST_ITERATION[i][j] < tempMinValue) {
+                    tempMinValue = LIST_ITERATION[i][j];
                 }
             }
         }
@@ -226,6 +227,8 @@ public class DiagramPanel extends JPanel implements ActionListener, MouseMotionL
 
     /**
      * This method is used to show the diagram.
+     * 
+     * @param g the <code>Graphics</code> context in which to paint
      */
     @Override
     public void paintComponent(Graphics g) {
@@ -236,11 +239,11 @@ public class DiagramPanel extends JPanel implements ActionListener, MouseMotionL
         /**
          * draw framework of the diagram
          */
-        g.drawLine(xDimensionStart, yDimensionStart - 1, xDimensionEnd, yDimensionStart - 1); //draw up horizontal line(-)
-        g.drawLine(xDimensionEnd, yDimensionStart, xDimensionEnd, yDimensionEnd); //draw right vertical line(|)
+        g.drawLine(X_DIMENSION_START, Y_DIMENSION_START - 1, X_DIMENSION_END, Y_DIMENSION_START - 1); //draw up horizontal line(-)
+        g.drawLine(X_DIMENSION_END, Y_DIMENSION_START, X_DIMENSION_END, Y_DIMENSION_END); //draw right vertical line(|)
         g2d.setStroke(new BasicStroke(2));
-        g2d.drawLine(xDimensionStart, yDimensionEnd, xDimensionEnd, yDimensionEnd); //draw down horizontal line(-)
-        g2d.drawLine(xDimensionStart, yDimensionStart, xDimensionStart, yDimensionEnd); //draw left vertical line(|)
+        g2d.drawLine(X_DIMENSION_START, Y_DIMENSION_END, X_DIMENSION_END, Y_DIMENSION_END); //draw down horizontal line(-)
+        g2d.drawLine(X_DIMENSION_START, Y_DIMENSION_START, X_DIMENSION_START, Y_DIMENSION_END); //draw left vertical line(|)
         g2d.setStroke(new BasicStroke(1));
 
         /**
@@ -248,14 +251,14 @@ public class DiagramPanel extends JPanel implements ActionListener, MouseMotionL
          */
         //x-axis title
         g.setFont(new Font("Tahoma", Font.BOLD, 13));
-        g.drawString("number of features", xDimensionStart + ((xDimensionEnd - xDimensionStart) / 4), yDimensionEnd + 50);
+        g.drawString("number of features", X_DIMENSION_START + ((X_DIMENSION_END - X_DIMENSION_START) / 4), Y_DIMENSION_END + 50);
         //title diagram
         g.setFont(new Font("Times New Roman", Font.BOLD, 22));
-        g.drawString(nameDiagram, 160, 45);
+        g.drawString(NAME_DIAGRAM, 160, 45);
         //y-axis title
         g2d.rotate(Math.toRadians(270), 10, 10);
         g2d.setFont(new Font("Tahoma", Font.BOLD, 13));
-        g2d.drawString(nameYAxis, -(yDimensionEnd - (yDimensionStart / 2)), 30);
+        g2d.drawString(NAME_Y_AXIS, -(Y_DIMENSION_END - (Y_DIMENSION_START / 2)), 30);
         g2d.rotate(Math.toRadians(90), 10, 10);
 
         /**
@@ -271,22 +274,22 @@ public class DiagramPanel extends JPanel implements ActionListener, MouseMotionL
                 0.0f));
         g2d.setColor(new Color(242, 242, 242));
         //draw x-axis value labels
-        int cutPoint2 = (xDimensionEnd - xDimensionStart) / (listCases.length + 1);
+        int cutPoint2 = (X_DIMENSION_END - X_DIMENSION_START) / (LIST_CASES.length + 1);
         int maskCutPoint2 = cutPoint2;
-        for (int i = 0; i < listCases.length; i++) {
-            int XPosition = xDimensionStart + maskCutPoint2;
+        for (int i = 0; i < LIST_CASES.length; i++) {
+            int XPosition = X_DIMENSION_START + maskCutPoint2;
             maskCutPoint2 += cutPoint2;
             //draw vertical gridline (|)
-            g2d.drawLine(XPosition, yDimensionEnd - 2, XPosition, yDimensionStart + 1);
+            g2d.drawLine(XPosition, Y_DIMENSION_END - 2, XPosition, Y_DIMENSION_START + 1);
         }
 
         g2d.setColor(Color.black);
         maskCutPoint2 = cutPoint2;
-        for (int i = 0; i < listCases.length; i++) {
-            int XPosition = xDimensionStart + maskCutPoint2;
+        for (int i = 0; i < LIST_CASES.length; i++) {
+            int XPosition = X_DIMENSION_START + maskCutPoint2;
             maskCutPoint2 += cutPoint2;
-            g2d.drawLine(XPosition, yDimensionEnd + 4, XPosition, yDimensionEnd); //draw small vertical line(|)
-            g2d.drawString(String.valueOf(listCases[i]), XPosition - 3, yDimensionEnd + 22); //draw label small vertical line(|)
+            g2d.drawLine(XPosition, Y_DIMENSION_END + 4, XPosition, Y_DIMENSION_END); //draw small vertical line(|)
+            g2d.drawString(String.valueOf(LIST_CASES[i]), XPosition - 3, Y_DIMENSION_END + 22); //draw label small vertical line(|)
         }
 
         /**
@@ -300,47 +303,47 @@ public class DiagramPanel extends JPanel implements ActionListener, MouseMotionL
                 1, //miter limit
                 new float[]{3, 3}, //dash pattern
                 0.0f));                //dash phase
-        double cutPoint1 = ((yDimensionEnd - 20) - yDimensionStart) / (intervalYDimension);
+        double cutPoint1 = ((Y_DIMENSION_END - 20) - Y_DIMENSION_START) / (intervalYDimension);
         double maskCutPoint1 = cutPoint1;
         for (int i = 0; i < intervalYDimension; i++) {
-            int yPosition = (int) (yDimensionEnd - maskCutPoint1);
+            int yPosition = (int) (Y_DIMENSION_END - maskCutPoint1);
             maskCutPoint1 += cutPoint1;
             //draw horizontal gridline (-)
-            g2d.drawLine(xDimensionStart + 1, yPosition, xDimensionEnd, yPosition);
+            g2d.drawLine(X_DIMENSION_START + 1, yPosition, X_DIMENSION_END, yPosition);
         }
 
         g2d.setColor(Color.black);
         maskCutPoint1 = 0;
         int interval = (int) Math.round((maxValue - minValue) / (double) intervalYDimension);
         for (int i = 0; i <= (intervalYDimension); i++) {
-            int yPosition = (int) (yDimensionEnd - maskCutPoint1);
+            int yPosition = (int) (Y_DIMENSION_END - maskCutPoint1);
             maskCutPoint1 += cutPoint1;
-            g2d.drawLine(xDimensionStart, yPosition, xDimensionStart - 5, yPosition); //draw small horizontal line(-)
-            g2d.drawString(String.valueOf(minValue + (interval * i)), xDimensionStart - 22, yPosition + 3); //Draw label horizontal line(-)
+            g2d.drawLine(X_DIMENSION_START, yPosition, X_DIMENSION_START - 5, yPosition); //draw small horizontal line(-)
+            g2d.drawString(String.valueOf(minValue + (interval * i)), X_DIMENSION_START - 22, yPosition + 3); //Draw label horizontal line(-)
         }
 
         /**
          *  sets data point values
          */
         g2d.setStroke(new BasicStroke(2));
-        double yDimension = ((yDimensionEnd - 20.0) - yDimensionStart) / intervalYDimension;
-        for (int i = 0; i < listIteration.length; i++) {
+        double yDimension = ((Y_DIMENSION_END - 20.0) - Y_DIMENSION_START) / intervalYDimension;
+        for (int i = 0; i < LIST_ITERATION.length; i++) {
             maskCutPoint2 = cutPoint2;
-            g2d.setColor(colorSet[i]);
-            int XPosition = xDimensionStart + maskCutPoint2;
-            int YPosition = (int) (((listIteration[i][0] - minValue) / interval) * yDimension);
-            Point key = new Point(XPosition - 3, yDimensionEnd - YPosition - 3);
+            g2d.setColor(COLOR_SET[i]);
+            int XPosition = X_DIMENSION_START + maskCutPoint2;
+            int YPosition = (int) (((LIST_ITERATION[i][0] - minValue) / interval) * yDimension);
+            Point key = new Point(XPosition - 3, Y_DIMENSION_END - YPosition - 3);
             axisValues.add(new TupleValues(key, new Point(i, 0)));
             g2d.fillRect(key.x, key.y, 8, 8);
 
-            for (int j = 1; j < listCases.length; j++) {
+            for (int j = 1; j < LIST_CASES.length; j++) {
                 maskCutPoint2 += cutPoint2;
-                int XNewPosition = xDimensionStart + maskCutPoint2;
-                int YNewPosition = (int) (((listIteration[i][j] - minValue) / interval) * yDimension);
-                key = new Point(XNewPosition - 3, yDimensionEnd - YNewPosition - 3);
+                int XNewPosition = X_DIMENSION_START + maskCutPoint2;
+                int YNewPosition = (int) (((LIST_ITERATION[i][j] - minValue) / interval) * yDimension);
+                key = new Point(XNewPosition - 3, Y_DIMENSION_END - YNewPosition - 3);
                 axisValues.add(new TupleValues(key, new Point(i, j)));
                 g2d.fillRect(key.x, key.y, 8, 8);
-                g2d.drawLine(XPosition, yDimensionEnd - YPosition, XNewPosition, yDimensionEnd - YNewPosition);
+                g2d.drawLine(XPosition, Y_DIMENSION_END - YPosition, XNewPosition, Y_DIMENSION_END - YNewPosition);
                 XPosition = XNewPosition;
                 YPosition = YNewPosition;
             }
@@ -352,32 +355,32 @@ public class DiagramPanel extends JPanel implements ActionListener, MouseMotionL
         //draw framework of legend
         g2d.setStroke(new BasicStroke(1));
         g2d.setColor(Color.black);
-        g2d.drawLine(xDStartLegend, yDimensionStart, xDStartLegend + widthLegend + 5, yDimensionStart); //draw up horizontal line(-)
+        g2d.drawLine(X_D_START_LEGEND, Y_DIMENSION_START, X_D_START_LEGEND + WIDTH_LEGEND + 5, Y_DIMENSION_START); //draw up horizontal line(-)
 
         //draw String title
         g2d.setFont(new Font("Tahoma", Font.PLAIN, 12));
         int height = 20;
-        for (int i = 0; i < listIteration.length; i++) {
-            g2d.drawString(nameLgendLabel + "(" + (i + 1) + ")", xDStartLegend + 35, yDStartLegeng + (height * i) + 4); //draw String
+        for (int i = 0; i < LIST_ITERATION.length; i++) {
+            g2d.drawString(NAME_LEGEND_LABEL + "(" + (i + 1) + ")", X_D_START_LEGEND + 35, Y_D_START_LEGEND + (height * i) + 4); //draw String
         }
 
         //draw sign and square
         g2d.setStroke(new BasicStroke(2));
         int maskHeight = 0;
-        for (int i = 0; i < listIteration.length; i++) {
-            g2d.setColor(colorSet[i]);
-            g2d.drawLine(xDStartLegend + 4, yDStartLegeng + maskHeight, xDStartLegend + 30, yDStartLegeng + maskHeight); //draw sign
-            g2d.fillRect(xDStartLegend + 13, yDStartLegeng + maskHeight - 4, 8, 8); //draw square
+        for (int i = 0; i < LIST_ITERATION.length; i++) {
+            g2d.setColor(COLOR_SET[i]);
+            g2d.drawLine(X_D_START_LEGEND + 4, Y_D_START_LEGEND + maskHeight, X_D_START_LEGEND + 30, Y_D_START_LEGEND + maskHeight); //draw sign
+            g2d.fillRect(X_D_START_LEGEND + 13, Y_D_START_LEGEND + maskHeight - 4, 8, 8); //draw square
             maskHeight += height;
         }
 
         //draw other framework of legend
         g2d.setStroke(new BasicStroke(1));
         g2d.setColor(Color.black);
-        int EndLegend = (listIteration.length * height) + yDStartLegeng - (height / 2);
-        g2d.drawLine(xDStartLegend + widthLegend + 5, yDimensionStart, xDStartLegend + widthLegend + 5, EndLegend); //draw right vertical line(|)
-        g2d.drawLine(xDStartLegend, EndLegend, xDStartLegend + widthLegend + 5, EndLegend); //draw down horizontal line(-)
-        g2d.drawLine(xDStartLegend, yDimensionStart, xDStartLegend, EndLegend); //draw left vertical line(|)
+        int EndLegend = (LIST_ITERATION.length * height) + Y_D_START_LEGEND - (height / 2);
+        g2d.drawLine(X_D_START_LEGEND + WIDTH_LEGEND + 5, Y_DIMENSION_START, X_D_START_LEGEND + WIDTH_LEGEND + 5, EndLegend); //draw right vertical line(|)
+        g2d.drawLine(X_D_START_LEGEND, EndLegend, X_D_START_LEGEND + WIDTH_LEGEND + 5, EndLegend); //draw down horizontal line(-)
+        g2d.drawLine(X_D_START_LEGEND, Y_DIMENSION_START, X_D_START_LEGEND, EndLegend); //draw left vertical line(|)
     }
 
     /**
@@ -408,7 +411,7 @@ public class DiagramPanel extends JPanel implements ActionListener, MouseMotionL
         c.paint(im.getGraphics());
         BufferedImage im2 = im.getSubimage(0, 25, c.getWidth(), c.getHeight() - 25);
         try {
-            ImageIO.write(im2, "png", new File(pathProject + "diagram.png"));
+            ImageIO.write(im2, "png", new File(PATH_PROJECT + "diagram.png"));
         } catch (IOException ex) {
             Logger.getLogger(DiagramPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -420,7 +423,7 @@ public class DiagramPanel extends JPanel implements ActionListener, MouseMotionL
      * @param e an action event
      */
     private void mi_saveAsActionPerformed(ActionEvent e) {
-        JFileChooser jfch = new JFileChooser(pathProject);
+        JFileChooser jfch = new JFileChooser(PATH_PROJECT);
         jfch.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         if (jfch.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
             String newPath = jfch.getSelectedFile().getPath();
@@ -468,8 +471,8 @@ public class DiagramPanel extends JPanel implements ActionListener, MouseMotionL
         Point res = point.get(axisValues);
         if (res != null) {
             txt_info.setBounds(e.getX() + 6, e.getY() - 30, 80, 22);
-            //txt_info.setText("Value: " + String.valueOf(listIteration[res.x][res.y]));
-            txt_info.setText("Value: " + MathFunc.roundDouble(listIteration[res.x][res.y], 3));
+            //txt_info.setText("Value: " + String.valueOf(LIST_ITERATION[res.x][res.y]));
+            txt_info.setText("Value: " + MathFunc.roundDouble(LIST_ITERATION[res.x][res.y], 3));
             txt_info.setVisible(true);
         } else {
             txt_info.setVisible(false);
@@ -558,7 +561,7 @@ public class DiagramPanel extends JPanel implements ActionListener, MouseMotionL
 //    public static void main(String[] args) {
 //        try {
 //            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-//        } catch (Exception e) {
+//        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
 //            System.out.println("Error setting native LAF: " + e);
 //        }
 //        double[][] testValues = {{10, 20, 30, 40, 50},

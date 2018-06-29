@@ -5,7 +5,7 @@
  * For more information about KFST, please visit:
  *     http://kfst.uok.ac.ir/index.html
  *
- * Copyright (C) 2016 KFST development team at University of Kurdistan,
+ * Copyright (C) 2016-2018 KFST development team at University of Kurdistan,
  * Sanandaj, Iran.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,59 +23,39 @@
  */
 package KFST.featureSelection.filter.supervised;
 
-import KFST.dataset.DatasetInfo;
-import KFST.featureSelection.filter.FilterApproach;
 import KFST.util.ArraysFunc;
 import java.util.Arrays;
+import KFST.featureSelection.filter.WeightedFilterApproach;
 
 /**
  * This java class is used to implement the Gini index method.
  *
  * @author Sina Tabakhi
+ * @see KFST.featureSelection.filter.WeightedFilterApproach
+ * @see KFST.featureSelection.FeatureWeighting
+ * @see KFST.featureSelection.FeatureSelection
  */
-public class GiniIndex implements FilterApproach {
+public class GiniIndex extends WeightedFilterApproach {
 
-    private double[][] trainSet;
-    private int numFeatures;
-    private int numClass;
-    private int[] selectedFeatureSubset;
-    private int numSelectedFeature;
-    private double[] giniIndexValues;
-
+    /**
+     * initializes the parameters
+     *
+     * @param arguments array of parameters contains 
+     * (<code>sizeSelectedFeatureSubset</code>) in which 
+     * <code><b><i>sizeSelectedFeatureSubset</i></b></code> is the number of 
+     * selected features
+     */
+    public GiniIndex(Object... arguments) {
+        super((int)arguments[0]);
+    }
+    
     /**
      * initializes the parameters
      *
      * @param sizeSelectedFeatureSubset the number of selected features
      */
     public GiniIndex(int sizeSelectedFeatureSubset) {
-        numSelectedFeature = sizeSelectedFeatureSubset;
-        selectedFeatureSubset = new int[numSelectedFeature];
-    }
-
-    /**
-     * loads the dataset
-     *
-     * @param ob an object of the DatasetInfo class
-     */
-    @Override
-    public void loadDataSet(DatasetInfo ob) {
-        trainSet = ob.getTrainSet();
-        numFeatures = ob.getNumFeature();
-        numClass = ob.getNumClass();
-    }
-
-    /**
-     * loads the dataset
-     *
-     * @param data the input dataset values
-     * @param numFeat the number of features in the dataset
-     * @param numClasses the number of classes in the dataset
-     */
-    @Override
-    public void loadDataSet(double[][] data, int numFeat, int numClasses) {
-        trainSet = ArraysFunc.copyDoubleArray2D(data);
-        numFeatures = numFeat;
-        numClass = numClasses;
+        super(sizeSelectedFeatureSubset);
     }
 
     /**
@@ -113,7 +93,7 @@ public class GiniIndex implements FilterApproach {
     @Override
     public void evaluateFeatures() {
         double giniSystem = computeGini(0, trainSet.length); // computes the gini value of the system (over all dataset)
-        giniIndexValues = new double[numFeatures];
+        featureValues = new double[numFeatures];
         int[] indecesGI;
 
         //computes the Gini index values of each feature
@@ -132,12 +112,12 @@ public class GiniIndex implements FilterApproach {
             }
             double prob = (trainSet.length - indexStart) / (double) trainSet.length;
             giniFeature += prob * computeGini(indexStart, trainSet.length);
-            giniIndexValues[i] = giniSystem - giniFeature;
+            featureValues[i] = giniSystem - giniFeature;
         }
 
-        indecesGI = ArraysFunc.sortWithIndex(Arrays.copyOf(giniIndexValues, giniIndexValues.length), true);
+        indecesGI = ArraysFunc.sortWithIndex(Arrays.copyOf(featureValues, featureValues.length), true);
 //        for (int i = 0; i < numFeatures; i++) {
-//            System.out.println(i + ") =  " + giniIndexValues[i]);
+//            System.out.println(i + ") =  " + featureValues[i]);
 //        }
 
         selectedFeatureSubset = Arrays.copyOfRange(indecesGI, 0, numSelectedFeature);
@@ -145,26 +125,5 @@ public class GiniIndex implements FilterApproach {
 //        for (int i = 0; i < numSelectedFeature; i++) {
 //            System.out.println("ranked  = " + selectedFeatureSubset[i]);
 //        }
-    }
-
-    /**
-     * This method return the subset of selected features by Gini index (GI)
-     * method
-     *
-     * @return an array of subset of selected features
-     */
-    @Override
-    public int[] getSelectedFeatureSubset() {
-        return selectedFeatureSubset;
-    }
-
-    /**
-     * This method return the Gini index values of each feature
-     *
-     * @return an array of Gini index values
-     */
-    @Override
-    public double[] getValues() {
-        return giniIndexValues;
     }
 }

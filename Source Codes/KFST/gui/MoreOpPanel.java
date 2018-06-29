@@ -5,7 +5,7 @@
  * For more information about KFST, please visit:
  *     http://kfst.uok.ac.ir/index.html
  *
- * Copyright (C) 2016 KFST development team at University of Kurdistan,
+ * Copyright (C) 2016-2018 KFST development team at University of Kurdistan,
  * Sanandaj, Iran.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -30,6 +30,7 @@ import javax.swing.JDialog;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 //import javax.swing.UIManager;
+//import javax.swing.UnsupportedLookAndFeelException;
 
 /**
  * This java class is used to create and show a panel for the "more option"
@@ -70,7 +71,8 @@ public class MoreOpPanel extends JDialog {
 //    public static void main(String[] args) {
 //        try {
 //            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-//        } catch (Exception e) {
+//            UIManager.getDefaults().put("TextArea.font", UIManager.getFont("TextField.font"));
+//        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
 //            System.out.println("Error setting native LAF: " + e);
 //        }
 //

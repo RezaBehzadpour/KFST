@@ -5,7 +5,7 @@
  * For more information about KFST, please visit:
  *     http://kfst.uok.ac.ir/index.html
  *
- * Copyright (C) 2016 KFST development team at University of Kurdistan,
+ * Copyright (C) 2016-2018 KFST development team at University of Kurdistan,
  * Sanandaj, Iran.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,10 +23,10 @@
  */
 package KFST.gui;
 
+import KFST.util.FileFunc;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -36,6 +36,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
 /**
  * This java class is used to create and show a panel for the selecting path for
@@ -132,12 +133,8 @@ public class ProjectPath extends JFrame implements ActionListener {
      */
     private void btn_selectActionPerformed(ActionEvent e) {
         //creates the two folder (CSV - ARFF)in the selected path
-        String pathDataCSV = path + "\\CSV\\";
-        String pathDataARFF = path + "\\ARFF\\";
-        File dir1 = new File(pathDataCSV);
-        File dir2 = new File(pathDataARFF);
-        dir1.mkdir();
-        dir2.mkdir();
+        FileFunc.createDirectory(path + "\\CSV\\");
+        FileFunc.createDirectory(path + "\\ARFF\\");
 
         MainPanel ui = new MainPanel(path);
         ui.createAndShow();
@@ -147,16 +144,13 @@ public class ProjectPath extends JFrame implements ActionListener {
     public static void main(String[] args) {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception e) {
+            UIManager.getDefaults().put("TextArea.font", UIManager.getFont("TextField.font"));
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
             System.out.println("Error setting native LAF: " + e);
         }
 
-        SwingUtilities.invokeLater(new Runnable() {
-
-            @Override
-            public void run() {
-                ProjectPath sp = new ProjectPath();
-            }
+        SwingUtilities.invokeLater(() -> {
+            ProjectPath sp = new ProjectPath();
         });
     }
 }

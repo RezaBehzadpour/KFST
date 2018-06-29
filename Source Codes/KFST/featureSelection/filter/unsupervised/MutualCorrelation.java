@@ -5,7 +5,7 @@
  * For more information about KFST, please visit:
  *     http://kfst.uok.ac.ir/index.html
  *
- * Copyright (C) 2016 KFST development team at University of Kurdistan,
+ * Copyright (C) 2016-2018 KFST development team at University of Kurdistan,
  * Sanandaj, Iran.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,23 +23,31 @@
  */
 package KFST.featureSelection.filter.unsupervised;
 
-import KFST.dataset.DatasetInfo;
-import KFST.featureSelection.filter.FilterApproach;
 import KFST.util.ArraysFunc;
 import KFST.util.MathFunc;
 import java.util.Arrays;
+import KFST.featureSelection.filter.FilterApproach;
 
 /**
  * This java class is used to implement the mutual correlation method.
  *
  * @author Sina Tabakhi
+ * @see KFST.featureSelection.filter.FilterApproach
+ * @see KFST.featureSelection.FeatureSelection
  */
-public class MutualCorrelation implements FilterApproach {
+public class MutualCorrelation extends FilterApproach {
 
-    private double[][] trainSet;
-    private int numFeatures;
-    private int[] selectedFeatureSubset;
-    private int numSelectedFeature;
+    /**
+     * initializes the parameters
+     *
+     * @param arguments array of parameters contains 
+     * (<code>sizeSelectedFeatureSubset</code>) in which 
+     * <code><b><i>sizeSelectedFeatureSubset</i></b></code> is the number of 
+     * selected features
+     */
+    public MutualCorrelation(Object... arguments) {
+        super((int)arguments[0]);
+    }
 
     /**
      * initializes the parameters
@@ -47,32 +55,7 @@ public class MutualCorrelation implements FilterApproach {
      * @param sizeSelectedFeatureSubset the number of selected features
      */
     public MutualCorrelation(int sizeSelectedFeatureSubset) {
-        numSelectedFeature = sizeSelectedFeatureSubset;
-        selectedFeatureSubset = new int[numSelectedFeature];
-    }
-
-    /**
-     * loads the dataset
-     *
-     * @param ob an object of the DatasetInfo class
-     */
-    @Override
-    public void loadDataSet(DatasetInfo ob) {
-        trainSet = ob.getTrainSet();
-        numFeatures = ob.getNumFeature();
-    }
-
-    /**
-     * loads the dataset
-     *
-     * @param data the input dataset values
-     * @param numFeat the number of features in the dataset
-     * @param numClasses the number of classes in the dataset
-     */
-    @Override
-    public void loadDataSet(double[][] data, int numFeat, int numClasses) {
-        trainSet = ArraysFunc.copyDoubleArray2D(data);
-        numFeatures = numFeat;
+        super(sizeSelectedFeatureSubset);
     }
 
     /**
@@ -89,10 +72,10 @@ public class MutualCorrelation implements FilterApproach {
         double sum1 = 0;
         double sum2 = 0;
         double sum3 = 0;
-        for (int i = 0; i < trainSet.length; i++) {
-            sum1 += trainSet[i][index1] * trainSet[i][index2];
-            sum2 += trainSet[i][index1] * trainSet[i][index1];
-            sum3 += trainSet[i][index2] * trainSet[i][index2];
+        for (double[] sample : trainSet) {
+            sum1 += sample[index1] * sample[index2];
+            sum2 += sample[index1] * sample[index1];
+            sum3 += sample[index2] * sample[index2];
         }
         sum1 -= trainSet.length * mean1 * mean2;
         sum2 -= trainSet.length * mean1 * mean1;
@@ -224,30 +207,5 @@ public class MutualCorrelation implements FilterApproach {
 //        for (int i = 0; i < numSelectedFeature; i++) {
 //            System.out.println("ranked  = " + selectedFeatureSubset[i]);
 //        }
-    }
-
-    /**
-     * This method return the subset of selected features by mutual
-     * correlation(MC) method.
-     *
-     * @return an array of subset of selected features
-     */
-    @Override
-    public int[] getSelectedFeatureSubset() {
-        return selectedFeatureSubset;
-    }
-
-    /**
-     * return the weights of features if the method gives weights of features
-     * individually and ranks them based on their relevance (i.e., feature
-     * weighting methods); otherwise, these values does not exist.
-     * <p>
-     * These values does not exist for mutual correlation(MC).
-     *
-     * @return an array of  weight of features
-     */
-    @Override
-    public double[] getValues() {
-        return null;
     }
 }

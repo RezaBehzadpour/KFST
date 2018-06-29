@@ -5,7 +5,7 @@
  * For more information about KFST, please visit:
  *     http://kfst.uok.ac.ir/index.html
  *
- * Copyright (C) 2016 KFST development team at University of Kurdistan,
+ * Copyright (C) 2016-2018 KFST development team at University of Kurdistan,
  * Sanandaj, Iran.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,28 +23,42 @@
  */
 package KFST.featureSelection.filter.unsupervised;
 
-import KFST.dataset.DatasetInfo;
-import KFST.featureSelection.filter.FilterApproach;
 import KFST.util.ArraysFunc;
 import KFST.util.MathFunc;
 import java.util.Arrays;
+import KFST.featureSelection.filter.WeightedFilterApproach;
 
 /**
  * This java class is used to implement the Laplacian score method. Also, it is
  * the unsupervised version of the Laplacian score.
  *
  * @author Sina Tabakhi
+ * @see KFST.featureSelection.filter.WeightedFilterApproach
+ * @see KFST.featureSelection.FeatureWeighting
+ * @see KFST.featureSelection.FeatureSelection
  */
-public class LaplacianScore implements FilterApproach {
+public class LaplacianScore extends WeightedFilterApproach {
 
-    private double[][] trainSet;
-    private int numFeatures;
-    private int[] selectedFeatureSubset;
-    private int numSelectedFeature;
-    private double[] laplacianScoreValues;
-    private double constantValue;
-    private int kNearestNeighborValue;
-    private double errorDenominator = 0.0001;
+    private final double CONSTANT_VALUE;
+    private final int K_NEAREST_NEIGHBOR_VALUE;
+    private final double ERROR_DENOMINATOR = 0.0001;
+
+    /**
+     * initializes the parameters
+     *
+     * @param arguments array of parameters contains
+     * (<code>sizeSelectedFeatureSubset</code>, <code>constant</code>,
+     * <code>kNNValue</code>) in which
+     * <code><b><i>sizeSelectedFeatureSubset</i></b></code> is the number of
+     * selected features, <code><b><i>constant</i></b></code> is the constant
+     * value used in the similarity measure, and
+     * <code><b><i>kNNValue</i></b></code> is the k-nearest neighbor value
+     */
+    public LaplacianScore(Object... arguments) {
+        super((int) arguments[0]);
+        CONSTANT_VALUE = (double) arguments[1];
+        K_NEAREST_NEIGHBOR_VALUE = (int) arguments[2];
+    }
 
     /**
      * initializes the parameters
@@ -54,39 +68,14 @@ public class LaplacianScore implements FilterApproach {
      * @param kNNValue the k-nearest neighbor value
      */
     public LaplacianScore(int sizeSelectedFeatureSubset, double constant, int kNNValue) {
-        numSelectedFeature = sizeSelectedFeatureSubset;
-        selectedFeatureSubset = new int[numSelectedFeature];
-        constantValue = constant;
-        kNearestNeighborValue = kNNValue;
-    }
-
-    /**
-     * loads the dataset
-     *
-     * @param ob an object of the Datasetinfo class
-     */
-    @Override
-    public void loadDataSet(DatasetInfo ob) {
-        trainSet = ob.getTrainSet();
-        numFeatures = ob.getNumFeature();
-    }
-
-    /**
-     * loads the dataset
-     *
-     * @param data the input dataset values
-     * @param numFeat the number of features in the dataset
-     * @param numClasses the number of classes in the dataset
-     */
-    @Override
-    public void loadDataSet(double[][] data, int numFeat, int numClasses) {
-        trainSet = ArraysFunc.copyDoubleArray2D(data);
-        numFeatures = numFeat;
+        super(sizeSelectedFeatureSubset);
+        CONSTANT_VALUE = constant;
+        K_NEAREST_NEIGHBOR_VALUE = kNNValue;
     }
 
     /**
      * construct nearest neighbor graph (G) of the data space
-     * 
+     *
      * @return the nearest neighbor graph
      */
     private boolean[][] constructNeighborGraph() {
@@ -94,7 +83,7 @@ public class LaplacianScore implements FilterApproach {
 
         for (int i = 0; i < trainSet.length; i++) {
             double[] distance = new double[trainSet.length];
-            int[] indexDataSort = new int[trainSet.length];
+            int[] indexDataSort;
 
             //finds the k-nearest neighbor data
             for (int j = 0; j < trainSet.length; j++) {
@@ -111,7 +100,7 @@ public class LaplacianScore implements FilterApproach {
 
             indexDataSort = ArraysFunc.sortWithIndex(distance, false);
 
-            for (int j = 0; j < kNearestNeighborValue; j++) {
+            for (int j = 0; j < K_NEAREST_NEIGHBOR_VALUE; j++) {
                 tempMatrix[i][indexDataSort[j]] = tempMatrix[indexDataSort[j]][i] = true;
             }
         }
@@ -120,10 +109,11 @@ public class LaplacianScore implements FilterApproach {
     }
 
     /**
-     * construct weight matrix(S) which models the local structure of the data space
+     * construct weight matrix(S) which models the local structure of the data
+     * space
      *
      * @param neighborGraph the nearest neighbor graph (G)
-     * 
+     *
      * @return the weight matrix
      */
     private double[][] constructWeightMatrix(boolean[][] neighborGraph) {
@@ -137,7 +127,7 @@ public class LaplacianScore implements FilterApproach {
                     for (int k = 0; k < numFeatures; k++) {
                         euclideanDistance += Math.pow(trainSet[i][k] - trainSet[j][k], 2);
                     }
-                    tempMatrix[i][j] = tempMatrix[j][i] = Math.pow(Math.E, -(euclideanDistance / constantValue));
+                    tempMatrix[i][j] = tempMatrix[j][i] = Math.pow(Math.E, -(euclideanDistance / CONSTANT_VALUE));
                 } else {
                     tempMatrix[i][j] = 0;
                 }
@@ -150,7 +140,7 @@ public class LaplacianScore implements FilterApproach {
      * construct the diagonal matrix (D) based on the weight matrix
      *
      * @param simMatrix the weight matrix(S)
-     * 
+     *
      * @return the diagonal matrix
      */
     private double[][] constructDiagonalMatrix(double[][] simMatrix) {
@@ -169,13 +159,13 @@ public class LaplacianScore implements FilterApproach {
      *
      * @param diag the diagonal matrix(D)
      * @param index the index of the feature
-     * 
+     *
      * @return the estimation of the features
      */
     private double[][] estimateFeatureMatrix(double[][] diag, int index) {
         double numeratorValue = 0;
         double denominatorValue = 0;
-        double fractionResult = 0;
+        double fractionResult;
         double[][] estFeature = new double[trainSet.length][1];
 
         //f(index) * diagonal matrix(D) * identity matrix(1)
@@ -188,7 +178,7 @@ public class LaplacianScore implements FilterApproach {
             denominatorValue += diag[i][i];
         }
         if (denominatorValue == 0) {
-            fractionResult = numeratorValue / errorDenominator;
+            fractionResult = numeratorValue / ERROR_DENOMINATOR;
         } else {
             fractionResult = numeratorValue / denominatorValue;
         }
@@ -204,12 +194,12 @@ public class LaplacianScore implements FilterApproach {
      * checks the values of data corresponding to a given feature
      *
      * @param index the index of the feature
-     * 
+     *
      * @return true if the all values is equal to zero
      */
     private boolean isZeroFeat(int index) {
-        for (int i = 0; i < trainSet.length; i++) {
-            if (trainSet[i][index] != 0) {
+        for (double[] sample : trainSet) {
+            if (sample[index] != 0) {
                 return false;
             }
         }
@@ -222,7 +212,7 @@ public class LaplacianScore implements FilterApproach {
      * @param matrix1 the first matrix
      * @param matrix2 the second matrix
      * @param matrix3 the third matrix
-     * 
+     *
      * @return the result of the chaining multiple
      */
     private double multThreeMatrix(double[][] matrix1, double[][] matrix2, double[][] matrix3) {
@@ -239,13 +229,13 @@ public class LaplacianScore implements FilterApproach {
         double[][] weightMatrix; // weight matrix of the data space
         double[][] identityMatrix = new double[trainSet.length][1]; // identity matrix
         double[][] diagonalMatrix; // diagonal matrix
-        double[][] graphLaplacian = new double[trainSet.length][trainSet.length]; // graph Laplacian
-        laplacianScoreValues = new double[numFeatures];
+        double[][] graphLaplacian; // graph Laplacian
+        featureValues = new double[numFeatures];
         int[] indecesLS;
 
         //constructs an identity matrix
-        for (int i = 0; i < identityMatrix.length; i++) {
-            identityMatrix[i][0] = 1;
+        for (double[] row : identityMatrix) {
+            row[0] = 1;
         }
 
         //constructs nearest neighbor graph
@@ -267,18 +257,18 @@ public class LaplacianScore implements FilterApproach {
                 double numeratorValue = multThreeMatrix(MathFunc.transMatrix(estimateFeature), graphLaplacian, estimateFeature);
                 double denominatorValue = multThreeMatrix(MathFunc.transMatrix(estimateFeature), diagonalMatrix, estimateFeature);
                 if (denominatorValue == 0) {
-                    laplacianScoreValues[i] = numeratorValue / errorDenominator;
+                    featureValues[i] = numeratorValue / ERROR_DENOMINATOR;
                 } else {
-                    laplacianScoreValues[i] = numeratorValue / denominatorValue;
+                    featureValues[i] = numeratorValue / denominatorValue;
                 }
             } else {
-                laplacianScoreValues[i] = 1 / errorDenominator;
+                featureValues[i] = 1 / ERROR_DENOMINATOR;
             }
         }
 
-        indecesLS = ArraysFunc.sortWithIndex(Arrays.copyOf(laplacianScoreValues, laplacianScoreValues.length), false);
+        indecesLS = ArraysFunc.sortWithIndex(Arrays.copyOf(featureValues, featureValues.length), false);
 //        for (int i = 0; i < numFeatures; i++) {
-//            System.out.println(i + ") =  " + laplacianScoreValues[i]);
+//            System.out.println(i + ") =  " + featureValues[i]);
 //        }
 
         selectedFeatureSubset = Arrays.copyOfRange(indecesLS, 0, numSelectedFeature);
@@ -289,23 +279,13 @@ public class LaplacianScore implements FilterApproach {
     }
 
     /**
-     * This method return the subset of selected features by Laplacian score(LS)
-     * method
-     *
-     * @return an array of subset of selected features
+     * {@inheritDoc}
      */
     @Override
-    public int[] getSelectedFeatureSubset() {
-        return selectedFeatureSubset;
-    }
-
-    /**
-     * This method return the Laplacian score values of each feature
-     *
-     * @return an array of Laplacian score values
-     */
-    @Override
-    public double[] getValues() {
-        return laplacianScoreValues;
+    public String validate() {
+        if (K_NEAREST_NEIGHBOR_VALUE >= trainSet.length) {
+            return "The parameter value of Laplacian score (k-nearest neighbor) is incorred.";
+        }
+        return "";
     }
 }

@@ -5,7 +5,7 @@
  * For more information about KFST, please visit:
  *     http://kfst.uok.ac.ir/index.html
  *
- * Copyright (C) 2016 KFST development team at University of Kurdistan,
+ * Copyright (C) 2016-2018 KFST development team at University of Kurdistan,
  * Sanandaj, Iran.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -40,6 +40,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 //import javax.swing.UIManager;
+//import javax.swing.UnsupportedLookAndFeelException;
 
 /**
  * This java class is used to create and show a panel for showing the results.
@@ -73,7 +74,6 @@ public class ResultPanel extends JPanel implements ActionListener {
         scroll.setBounds(0, 0, 695, 400);
         scroll.setViewportView(txtArea_main);
 
-
         btn_showFeat = new JButton("View subsets");
         btn_showFeat.setBounds(70, 420, 130, 23);
         btn_showFeat.setEnabled(false);
@@ -94,7 +94,6 @@ public class ResultPanel extends JPanel implements ActionListener {
         btn_exit.setEnabled(false);
         btn_exit.addActionListener(this);
 
-
         setSize(700, 400);
         setLayout(null);
         add(scroll);
@@ -114,8 +113,8 @@ public class ResultPanel extends JPanel implements ActionListener {
     }
 
     /**
-     * The listener method for receiving action events.
-     * Invoked when an action occurs.
+     * The listener method for receiving action events. Invoked when an action
+     * occurs.
      *
      * @param e an action event
      */
@@ -137,7 +136,7 @@ public class ResultPanel extends JPanel implements ActionListener {
      *
      * @param e an action event
      *
-     * @see KurdFeast.gui.MainPanel
+     * @see KFST.gui.MainPanel
      */
     private void btn_showFeatActionPerformed(ActionEvent e) {
         try {
@@ -191,7 +190,7 @@ public class ResultPanel extends JPanel implements ActionListener {
 
     /**
      * appends the given text to the end of the documents
-     * 
+     *
      * @param text the text to insert
      */
     public void setMessage(String text) {
@@ -212,7 +211,8 @@ public class ResultPanel extends JPanel implements ActionListener {
 //    public static void main(String[] args) {
 //        try {
 //            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-//        } catch (Exception e) {
+//            UIManager.getDefaults().put("TextArea.font", UIManager.getFont("TextField.font"));
+//        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
 //            System.out.println("Error setting native LAF: " + e);
 //        }
 //

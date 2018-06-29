@@ -5,7 +5,7 @@
  * For more information about KFST, please visit:
  *     http://kfst.uok.ac.ir/index.html
  *
- * Copyright (C) 2016 KFST development team at University of Kurdistan,
+ * Copyright (C) 2016-2018 KFST development team at University of Kurdistan,
  * Sanandaj, Iran.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,59 +23,43 @@
  */
 package KFST.featureSelection.filter.supervised;
 
-import KFST.dataset.DatasetInfo;
-import KFST.featureSelection.filter.FilterApproach;
 import KFST.util.ArraysFunc;
 import KFST.util.MathFunc;
+import KFST.featureSelection.filter.FilterApproach;
 
 /**
  * This java class is used to implement the minimal redundancy maximal
  * relevance (mRMR) method.
  *
  * @author Sina Tabakhi
+ * @see KFST.featureSelection.filter.FilterApproach
+ * @see KFST.featureSelection.FeatureSelection
  */
-public class MRMR implements FilterApproach {
+public class MRMR extends FilterApproach {
 
-    private double[][] trainSet;
-    private int numFeatures;
-    private int[] selectedFeatureSubset;
-    private int numSelectedFeature;
     private double[][] probFeature;
     private double[][] valuesFeature;
-//    private double errorDenominator = 0.0001;
+    //private double ERROR_DENOMINATOR = 0.0001;
 
+    /**
+     * initializes the parameters
+     *
+     * @param arguments array of parameters contains 
+     * (<code>sizeSelectedFeatureSubset</code>) in which 
+     * <code><b><i>sizeSelectedFeatureSubset</i></b></code> is the number of 
+     * selected features
+     */
+    public MRMR(Object... arguments) {
+        super((int)arguments[0]);
+    }
+    
     /**
      * initializes the parameters
      *
      * @param sizeSelectedFeatureSubset the number of selected features
      */
     public MRMR(int sizeSelectedFeatureSubset) {
-        numSelectedFeature = sizeSelectedFeatureSubset;
-        selectedFeatureSubset = new int[numSelectedFeature];
-    }
-
-    /**
-     * loads the dataset
-     *
-     * @param ob an object of the DatasetInfo class
-     */
-    @Override
-    public void loadDataSet(DatasetInfo ob) {
-        trainSet = ob.getTrainSet();
-        numFeatures = ob.getNumFeature();
-    }
-
-    /**
-     * loads the dataset
-     *
-     * @param data the input dataset values
-     * @param numFeat the number of features in the dataset
-     * @param numClasses the number of classes in the dataset
-     */
-    @Override
-    public void loadDataSet(double[][] data, int numFeat, int numClasses) {
-        trainSet = ArraysFunc.copyDoubleArray2D(data);
-        numFeatures = numFeat;
+        super(sizeSelectedFeatureSubset);
     }
 
     /**
@@ -126,14 +110,14 @@ public class MRMR implements FilterApproach {
             if (trainSet[i][index] != trainSet[i - 1][index]) {
                 probFeature[index][count++] = (i - indexStart) / (double) trainSet.length; // probability of the feature based on its given value
 //                if (probFeature[index][count - 1] == 0) {
-//                    probFeature[index][count - 1] = errorDenominator;
+//                    probFeature[index][count - 1] = ERROR_DENOMINATOR;
 //                }
                 indexStart = i;
             }
         }
         probFeature[index][count] = (trainSet.length - indexStart) / (double) trainSet.length; // probability of the feature based on its given value
 //        if (probFeature[index][count] == 0) {
-//            probFeature[index][count] = errorDenominator;
+//            probFeature[index][count] = ERROR_DENOMINATOR;
 //        }
     }
 
@@ -308,30 +292,5 @@ public class MRMR implements FilterApproach {
 //        for (int i = 0; i < numSelectedFeature; i++) {
 //            System.out.println("ranked  = " + selectedFeatureSubset[i]);
 //        }
-    }
-
-    /**
-     * This method return the subset of selected features by minimal redundancy
-     * maximal relevance (mRMR) method
-     *
-     * @return an array of subset of selected features
-     */
-    @Override
-    public int[] getSelectedFeatureSubset() {
-        return selectedFeatureSubset;
-    }
-
-    /**
-     * return the weights of features if the method gives weights of features
-     * individually and ranks them based on their relevance (i.e., feature
-     * weighting methods); otherwise, these values does not exist.
-     * <p>
-     * These values does not exist for mRMR.
-     *
-     * @return an array of  weight of features
-     */
-    @Override
-    public double[] getValues() {
-        return null;
     }
 }

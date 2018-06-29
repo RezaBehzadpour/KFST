@@ -5,7 +5,7 @@
  * For more information about KFST, please visit:
  *     http://kfst.uok.ac.ir/index.html
  *
- * Copyright (C) 2016 KFST development team at University of Kurdistan,
+ * Copyright (C) 2016-2018 KFST development team at University of Kurdistan,
  * Sanandaj, Iran.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -45,6 +45,7 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 //import javax.swing.UIManager;
+//import javax.swing.UnsupportedLookAndFeelException;
 
 /**
  * This java class is used to create and show a panel for preprocessing of the
@@ -90,13 +91,11 @@ public class PreprocessPanel extends JFrame
         btn_selectFile.setBounds(340, 108, 100, 23);
         btn_selectFile.addActionListener(this);
 
-
         /////////////////////// Delimiter panel ///////////////////////////////
         panel_delimiter = new JPanel();
         panel_delimiter.setBounds(30, 160, 105, 130);
         panel_delimiter.setLayout(null);
         panel_delimiter.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Delimiter"));
-
 
         rd_tab = new JRadioButton("Tab");
         rd_tab.setBounds(10, 25, 85, 22);
@@ -134,7 +133,6 @@ public class PreprocessPanel extends JFrame
         btn_close.setBounds(250, 310, 90, 23);
         btn_close.addActionListener(this);
 
-
         add(panel_about);
 
         add(lbl_inputFile);
@@ -148,7 +146,6 @@ public class PreprocessPanel extends JFrame
         add(btn_save);
         add(btn_close);
 
-
         setLayout(null);
         setSize(490, 380);
         setLocationRelativeTo(null);
@@ -160,8 +157,8 @@ public class PreprocessPanel extends JFrame
     }
 
     /**
-     * The listener method for receiving action events.
-     * Invoked when an action occurs.
+     * The listener method for receiving action events. Invoked when an action
+     * occurs.
      *
      * @param e an action event
      */
@@ -285,7 +282,7 @@ public class PreprocessPanel extends JFrame
 //    public static void main(String[] arg) {
 //        try {
 //            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-//        } catch (Exception e) {
+//        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
 //            System.out.println("Error setting native LAF: " + e);
 //        }
 //

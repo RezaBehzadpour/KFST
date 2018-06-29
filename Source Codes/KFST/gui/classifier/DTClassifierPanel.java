@@ -5,7 +5,7 @@
  * For more information about KFST, please visit:
  *     http://kfst.uok.ac.ir/index.html
  *
- * Copyright (C) 2016 KFST development team at University of Kurdistan,
+ * Copyright (C) 2016-2018 KFST development team at University of Kurdistan,
  * Sanandaj, Iran.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,190 +23,116 @@
  */
 package KFST.gui.classifier;
 
-import KFST.gui.MoreOpPanel;
+import KFST.gui.ParameterPanel;
+import KFST.util.MathFunc;
 import java.awt.Color;
+import java.awt.Container;
 //import java.awt.Dialog;
+import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JTextField;
 //import javax.swing.SwingUtilities;
 //import javax.swing.UIManager;
+//import javax.swing.UnsupportedLookAndFeelException;
 
 /**
  * This java class is used to create and show a panel for the parameter settings
  * of the decision tree classifier.
  *
  * @author Shahin Salavati
+ * @author Sina Tabakhi
+ * @see KFST.gui.ParameterPanel
  */
-public class DTClassifierPanel extends JDialog
-        implements ActionListener, KeyListener {
+public class DTClassifierPanel extends ParameterPanel {
 
-    JLabel lbl_title, lbl_confidenc, lbl_minNum, lbl_about, lbl_confidencError, lbl_minNumError;
+    JLabel lbl_confidence, lbl_minNum, lbl_confidenceError, lbl_minNumError;
     JTextField txt_confidence, txt_minNum;
-    JButton btn_ok, btn_more;
-    JPanel panel_about;
-    private double confidence = 0.25, defConfidence = 0.25;
-    private int minNum = 2, defMinNum = 2;
+    private static final double DEFAULT_CONFIDENCE = 0.25;
+    private double confidence = 0.25;
+    private static final int DEFAULT_MIN_NUM = 2;
+    private int minNum = 2;
 
     /**
      * Creates new form DTClassifierPanel. This method is called from within the
      * constructor to initialize the form.
      */
     public DTClassifierPanel() {
-        super();
-        lbl_title = new JLabel("Decision tree settings:");
-        lbl_title.setBounds(10, 10, 140, 20);
+        super("Parameter Settings Panel",
+                "Decision tree settings:",
+                "The C4.5 decision tree with the post-pruning algorithm in the pruning phase.",
+                "Option\n\n"
+                + "Confidence factor -> the confidence factor used for pruning (smaller values incur more pruning).\n\n"
+                + "MinNumSample -> the minimum number of samples per leaf.\n\n",
+                new Rectangle(10, 10, 140, 20),
+                new Rectangle(10, 35, 400, 60),
+                new Rectangle(120, 220, 75, 23),
+                new Rectangle(240, 220, 75, 23),
+                new Dimension(440, 300));
 
-        panel_about = new JPanel();
-        panel_about.setBounds(10, 50, 400, 60);
-        panel_about.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(171, 170, 170)), "About"));
-        lbl_about = new JLabel("The C4.5 decision tree with the post-pruning algorithm in the pruning phase.");
+        Container contentPane = getContentPane();
 
-        panel_about.add(lbl_about);
-
-        lbl_confidenc = new JLabel("Confidence factor:");
-        lbl_confidenc.setBounds(30, 135, 120, 22);
-
-        txt_confidence = new JTextField(String.valueOf(defConfidence));
+        lbl_confidence = new JLabel("Confidence factor:");
+        lbl_confidence.setBounds(30, 135, 120, 22);
+        txt_confidence = new JTextField(String.valueOf(DEFAULT_CONFIDENCE));
         txt_confidence.setBounds(130, 135, 120, 21);
         txt_confidence.addKeyListener(this);
-        lbl_confidencError = new JLabel("");
-        lbl_confidencError.setBounds(260, 135, 50, 22);
-        lbl_confidencError.setForeground(Color.red);
+        lbl_confidenceError = new JLabel("");
+        lbl_confidenceError.setBounds(260, 135, 50, 22);
+        lbl_confidenceError.setForeground(Color.red);
 
         lbl_minNum = new JLabel("MinNumSample:");
         lbl_minNum.setBounds(30, 170, 120, 22);
-        txt_minNum = new JTextField(Integer.toString(defMinNum));
+        txt_minNum = new JTextField(Integer.toString(DEFAULT_MIN_NUM));
         txt_minNum.setBounds(130, 170, 120, 21);
         txt_minNum.addKeyListener(this);
         lbl_minNumError = new JLabel("");
         lbl_minNumError.setBounds(260, 170, 50, 22);
         lbl_minNumError.setForeground(Color.red);
 
-        btn_ok = new JButton("Ok");
-        btn_ok.setBounds(120, 220, 75, 23);
-        btn_ok.addActionListener(this);
+        contentPane.add(lbl_confidence);
+        contentPane.add(txt_confidence);
+        contentPane.add(lbl_minNum);
+        contentPane.add(txt_minNum);
+        contentPane.add(lbl_confidenceError);
+        contentPane.add(lbl_minNumError);
 
-        btn_more = new JButton("More");
-        btn_more.setBounds(240, 220, 75, 23);
-        btn_more.addActionListener(this);
-
-
-        setModalityType(ModalityType.APPLICATION_MODAL);
-        setIconImage(new ImageIcon(getClass().getResource("/KFST/gui/icons/small_logo.png")).getImage());
-        setSize(440, 300);
-        setLayout(null);
-        add(lbl_title);
-        add(panel_about);
-        add(lbl_confidenc);
-        add(txt_confidence);
-        add(lbl_minNum);
-        add(txt_minNum);
-        add(lbl_confidencError);
-        add(lbl_minNumError);
-        add(btn_ok);
-        add(btn_more);
-
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setLocationRelativeTo(null);
-        setResizable(false);
-        setTitle("Parameter Settings Panel");
+        contentPane.validate();
+//        contentPane.revalidate();
+        contentPane.repaint();
+//        this.pack();
     }
 
     /**
-     * The listener method for receiving action events.
-     * Invoked when an action occurs.
-     *
-     * @param e an action event
-     */
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        if (e.getSource().equals(btn_ok)) {
-            btn_okActionPerformed(e);
-        } else if (e.getSource().equals(btn_more)) {
-            btn_moreActionPerformed(e);
-        }
-    }
-
-    /**
-     * The listener method for receiving keyboard events (keystrokes).
-     * Invoked when a key has been typed.
-     *
-     * @param e an action event
-     */
-    @Override
-    public void keyTyped(KeyEvent e) {
-    }
-
-    /**
-     * The listener method for receiving keyboard events (keystrokes).
-     * Invoked when a key has been pressed. 
-     *
-     * @param e an action event
-     */
-    @Override
-    public void keyPressed(KeyEvent e) {
-    }
-
-    /**
-     * The listener method for receiving keyboard events (keystrokes).
-     * Invoked when a key has been released.
+     * The listener method for receiving keyboard events (keystrokes). Invoked
+     * when a key has been released.
      *
      * @param e an action event
      */
     @Override
     public void keyReleased(KeyEvent e) {
-        if (e.getSource().equals(txt_confidence)) {
-            txt_confidenceKeyReleased(e);
-        } else if (e.getSource().equals(txt_minNum)) {
-            txt_minNumKeyReleased(e);
-        }
-    }
+        boolean enableOkButton = true;
+        String tempStr;
 
-    /**
-     * This method sets an action for the txt_confidence text field.
-     *
-     * @param e an action event
-     */
-    private void txt_confidenceKeyReleased(KeyEvent e) {
-        String confidenceLabel = txt_confidence.getText();
-        String minSampelLabel = txt_minNum.getText();
-        if (confidenceLabel.equals("") || !isCorrect(confidenceLabel)) {
-            lbl_confidencError.setText("*");
-            btn_ok.setEnabled(false);
-        } else if (!minSampelLabel.equals("") && isCorrect(minSampelLabel) && isInteger(minSampelLabel)) {
-            lbl_confidencError.setText("");
-            btn_ok.setEnabled(true);
+        tempStr = txt_confidence.getText();
+        if (!MathFunc.isDouble(tempStr) || Double.parseDouble(tempStr) < 0) {
+            lbl_confidenceError.setText("*");
+            enableOkButton = false;
         } else {
-            lbl_confidencError.setText("");
+            lbl_confidenceError.setText("");
         }
-    }
 
-    /**
-     * This method sets an action for the txt_minNum text field.
-     *
-     * @param e an action event
-     */
-    private void txt_minNumKeyReleased(KeyEvent e) {
-        String minSampelLabel = txt_minNum.getText();
-        String confidenceLabel = txt_confidence.getText();
-        if (minSampelLabel.equals("") || (!isCorrect(minSampelLabel)) || (!isInteger(minSampelLabel))) {
+        tempStr = txt_minNum.getText();
+        if (!MathFunc.isInteger(tempStr) || Integer.parseInt(tempStr) < 0) {
             lbl_minNumError.setText("*");
-            btn_ok.setEnabled(false);
-        } else if ((!confidenceLabel.equals("")) && (isCorrect(confidenceLabel))) {
-            lbl_minNumError.setText("");
-            btn_ok.setEnabled(true);
+            enableOkButton = false;
         } else {
             lbl_minNumError.setText("");
         }
+
+        btn_ok.setEnabled(enableOkButton);
     }
 
     /**
@@ -214,62 +140,11 @@ public class DTClassifierPanel extends JDialog
      *
      * @param e an action event
      */
-    private void btn_okActionPerformed(ActionEvent e) {
+    @Override
+    protected void btn_okActionPerformed(ActionEvent e) {
         setConfidence(Double.parseDouble(txt_confidence.getText()));
         setMinNum(Integer.parseInt(txt_minNum.getText()));
-        dispose();
-    }
-
-    /**
-     * This method sets an action for the btn_more button.
-     *
-     * @param e an action event
-     */
-    private void btn_moreActionPerformed(ActionEvent e) {
-        String str = "Option\n\n";
-        str += "Confidence factor -> the confidence factor used for pruning (smaller values incur more pruning).\n\n";
-        str += "MinNumSample -> the minimum number of samples per leaf.\n\n";
-        MoreOpPanel morePanel = new MoreOpPanel(str);
-        morePanel.setVisible(true);
-    }
-
-    /**
-     * This method checks the status of the text field due to correct
-     * input value
-     *
-     * @param s the input string
-     *
-     * @return true if the input string is in the correct format
-     */
-    private boolean isCorrect(String s) {
-        int countDot = 0;
-        for (int locate = 0; locate < s.length(); locate++) {
-            if (s.charAt(locate) == '.') {
-                countDot++;
-            } else if (!Character.isDigit(s.charAt(locate))) {
-                return false;
-            }
-        }
-        if (countDot > 1) {
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * This method checks the input string due to correct integer value
-     *
-     * @param s the input string
-     *
-     * @return true if the input string is in the correct format
-     */
-    private boolean isInteger(String s) {
-        for (int locate = 0; locate < s.length(); locate++) {
-            if (s.charAt(locate) == '.') {
-                return false;
-            }
-        }
-        return true;
+        super.btn_okActionPerformed(e);
     }
 
     /**
@@ -312,10 +187,10 @@ public class DTClassifierPanel extends JDialog
      * sets the default values of the decision tree parameters
      */
     public void setDefaultValue() {
-        txt_confidence.setText(String.valueOf(defConfidence));
-        txt_minNum.setText(String.valueOf(defMinNum));
-        confidence = defConfidence;
-        minNum = defMinNum;
+        txt_confidence.setText(String.valueOf(DEFAULT_CONFIDENCE));
+        txt_minNum.setText(String.valueOf(DEFAULT_MIN_NUM));
+        confidence = DEFAULT_CONFIDENCE;
+        minNum = DEFAULT_MIN_NUM;
     }
 
     /**
@@ -334,19 +209,17 @@ public class DTClassifierPanel extends JDialog
 //    public static void main(String[] arg) {
 //        try {
 //            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-//        } catch (Exception e) {
+//            UIManager.getDefaults().put("TextArea.font", UIManager.getFont("TextField.font"));
+//        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
 //            System.out.println("Error setting native LAF: " + e);
 //        }
 //
-//        SwingUtilities.invokeLater(new Runnable() {
-//
-//            public void run() {
-//                DTClassifierPanel dtpanel = new DTClassifierPanel();
-//                Dialog dlg = new Dialog(dtpanel);
-//                dtpanel.setVisible(true);
-//                System.out.println("minNum = " + dtpanel.getMinNum());
-//                System.out.println("confidence = " + dtpanel.getConfidence());
-//            }
+//        SwingUtilities.invokeLater(() -> {
+//            DTClassifierPanel dtpanel = new DTClassifierPanel();
+//            Dialog dlg = new Dialog(dtpanel);
+//            dtpanel.setVisible(true);
+//            System.out.println("confidence = " + dtpanel.getConfidence());
+//            System.out.println("minNum = " + dtpanel.getMinNum());
 //        });
 //    }
 }

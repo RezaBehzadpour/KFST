@@ -5,7 +5,7 @@
  * For more information about KFST, please visit:
  *     http://kfst.uok.ac.ir/index.html
  *
- * Copyright (C) 2016 KFST development team at University of Kurdistan,
+ * Copyright (C) 2016-2018 KFST development team at University of Kurdistan,
  * Sanandaj, Iran.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,6 +23,7 @@
  */
 package KFST.util;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
@@ -42,9 +43,22 @@ public final class ArraysFunc {
      * @return a copy array of the input array
      */
     public static double[][] copyDoubleArray2D(double[][] initArray) {
-        double[][] copyArray = new double[initArray.length][initArray[0].length];
-        for (int i = 0; i < initArray.length; i++) {
-            copyArray[i] = Arrays.copyOf(initArray[i], initArray[i].length);
+        return copyDoubleArray2D(initArray, 0, initArray.length);
+    }
+
+    /**
+     * creates a copy of the two dimensional array by using the indices of rows
+     *
+     * @param initArray initial array
+     * @param indexStart the start index of the data
+     * @param indexEnd the end index of the data
+     *
+     * @return a copy array of the input array
+     */
+    public static double[][] copyDoubleArray2D(double[][] initArray, int indexStart, int indexEnd) {
+        double[][] copyArray = new double[indexEnd - indexStart][initArray[0].length];
+        for (int i = indexStart, j = 0; i < indexEnd; i++, j++) {
+            copyArray[j] = Arrays.copyOf(initArray[i], initArray[i].length);
         }
         return copyArray;
     }
@@ -118,6 +132,25 @@ public final class ArraysFunc {
         if (descending) {
             int[] tempArray = Arrays.copyOfRange(array, 0, array.length);
             for (int i = 0, j = array.length - 1; i < array.length; i++, j--) {
+                array[i] = tempArray[j];
+            }
+        }
+    }
+
+    /**
+     * sorts the one dimensional array (integer values) as descending or
+     * ascending order
+     *
+     * @param array the input array
+     * @param descending indicates the type of sorting
+     * @param indexStart the start index of the data
+     * @param indexEnd the end index of the data
+     */
+    public static void sortArray1D(int[] array, boolean descending, int indexStart, int indexEnd) {
+        Arrays.sort(array, indexStart, indexEnd);
+        if (descending) {
+            int[] tempArray = Arrays.copyOfRange(array, 0, array.length);
+            for (int i = indexStart, j = indexEnd - 1; i < indexEnd; i++, j--) {
                 array[i] = tempArray[j];
             }
         }
@@ -209,9 +242,9 @@ public final class ArraysFunc {
 
     /**
      * converts the string input to double values
-     * 
+     *
      * @param array the string input array
-     * 
+     *
      * @return the double array obtained from input array
      */
     public static double[][] convertStringToDouble(String[][] array) {
@@ -222,5 +255,16 @@ public final class ArraysFunc {
             }
         }
         return results;
+    }
+
+    /**
+     * converts the ArrayList type to an array of integer values
+     *
+     * @param list the input ArrayList
+     *
+     * @return an array of integer values
+     */
+    public static int[] convertArrayListToInt(ArrayList<Integer> list) {
+        return list.stream().mapToInt(i -> i).toArray();
     }
 }

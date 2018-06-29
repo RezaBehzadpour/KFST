@@ -5,7 +5,7 @@
  * For more information about KFST, please visit:
  *     http://kfst.uok.ac.ir/index.html
  *
- * Copyright (C) 2016 KFST development team at University of Kurdistan,
+ * Copyright (C) 2016-2018 KFST development team at University of Kurdistan,
  * Sanandaj, Iran.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,27 +23,37 @@
  */
 package KFST.featureSelection.filter.unsupervised;
 
-import KFST.dataset.DatasetInfo;
-import KFST.featureSelection.filter.FilterApproach;
 import KFST.util.ArraysFunc;
 import KFST.util.MathFunc;
 import java.util.Arrays;
+import KFST.featureSelection.filter.FilterApproach;
 
 /**
  * This java class is used to implement the relevance-redundancy feature
  * selection(RRFS) method. Also, it is the unsupervised version of the RRFS.
  *
  * @author Sina Tabakhi
+ * @see KFST.featureSelection.filter.FilterApproach
+ * @see KFST.featureSelection.FeatureSelection
  */
-public class RRFS implements FilterApproach {
+public class RRFS extends FilterApproach {
 
-    private double[][] trainSet;
-    private int numFeatures;
-    private int[] selectedFeatureSubset;
-    private int numSelectedFeature;
-    private double maxSimValue; //maximum allowed similarity between two features
-    private boolean status; //check the status of size of the selected feature
+    private final double MAX_SIM_VALUE; //maximum allowed similarity between two features
 
+    /**
+     * initializes the parameters
+     *
+     * @param arguments array of parameters contains 
+     * (<code>sizeSelectedFeatureSubset</code>, <code>maxSimilarity</code>) in 
+     * which <code><b><i>sizeSelectedFeatureSubset</i></b></code> is the number 
+     * of selected features, and <code><b><i>maxSimilarity</i></b></code> is 
+     * maximum allowed similarity between two features
+     */
+    public RRFS(Object... arguments) {
+        super((int)arguments[0]);
+        MAX_SIM_VALUE = (double)arguments[1];
+    }
+    
     /**
      * initializes the parameters
      *
@@ -51,34 +61,8 @@ public class RRFS implements FilterApproach {
      * @param maxSimilarity maximum allowed similarity between two features
      */
     public RRFS(int sizeSelectedFeatureSubset, double maxSimilarity) {
-        numSelectedFeature = sizeSelectedFeatureSubset;
-        selectedFeatureSubset = new int[numSelectedFeature];
-        maxSimValue = maxSimilarity;
-        status = true;
-    }
-
-    /**
-     * loads the dataset
-     *
-     * @param ob an object of the DatasetInfo class
-     */
-    @Override
-    public void loadDataSet(DatasetInfo ob) {
-        trainSet = ob.getTrainSet();
-        numFeatures = ob.getNumFeature();
-    }
-
-    /**
-     * loads the dataset
-     *
-     * @param data the input dataset values
-     * @param numFeat the number of features in the dataset
-     * @param numClasses the number of classes in the dataset
-     */
-    @Override
-    public void loadDataSet(double[][] data, int numFeat, int numClasses) {
-        trainSet = ArraysFunc.copyDoubleArray2D(data);
-        numFeatures = numFeat;
+        super(sizeSelectedFeatureSubset);
+        MAX_SIM_VALUE = maxSimilarity;
     }
 
     /**
@@ -91,8 +75,8 @@ public class RRFS implements FilterApproach {
      */
     private double computeMAD(int indexFeature, double mean) {
         double sum = 0;
-        for (int i = 0; i < trainSet.length; i++) {
-            sum += Math.abs(trainSet[i][indexFeature] - mean);
+        for (double[] sample : trainSet) {
+            sum += Math.abs(sample[indexFeature] - mean);
         }
         return sum;
     }
@@ -104,7 +88,7 @@ public class RRFS implements FilterApproach {
     @Override
     public void evaluateFeatures() {
         double[] MADValues = new double[numFeatures]; // the mean absolute difference (MAD) values
-        int[] indexFeatures = new int[numFeatures];
+        int[] indexFeatures;
         int prev, next;
 
         //computes the mean absolute difference(MAD) values
@@ -121,7 +105,7 @@ public class RRFS implements FilterApproach {
         next = 1;
         for (int i = 1; i < numFeatures && next < numSelectedFeature; i++) {
             double simValue = Math.abs(MathFunc.computeSimilarity(trainSet, indexFeatures[i], indexFeatures[prev]));
-            if (simValue < maxSimValue) {
+            if (simValue < MAX_SIM_VALUE) {
                 selectedFeatureSubset[next] = indexFeatures[i];
                 prev = i;
                 next++;
@@ -134,44 +118,7 @@ public class RRFS implements FilterApproach {
 
         if (next < numSelectedFeature) {
             selectedFeatureSubset = Arrays.copyOfRange(selectedFeatureSubset, 0, next);
-            status = false;
         }
         ArraysFunc.sortArray1D(selectedFeatureSubset, false);
-    }
-
-    /**
-     * This method return the subset of selected features by
-     * relevance-redundancy feature selection(RRFS) method
-     *
-     * @return an array of subset of selected features
-     */
-    @Override
-    public int[] getSelectedFeatureSubset() {
-        return selectedFeatureSubset;
-    }
-
-    /**
-     * return the weights of features if the method gives weights of features
-     * individually and ranks them based on their relevance (i.e., feature
-     * weighting methods); otherwise, these values does not exist.
-     * <p>
-     * These values does not exist for RRFS.
-     *
-     * @return an array of  weight of features
-     */
-    @Override
-    public double[] getValues() {
-        return null;
-    }
-
-    /**
-     * gets the status of the size of the selected feature(is equal the size of
-     * selected features by RRFS method and the number of selected features
-     * by user)
-     *
-     * @return the status of the size of the selected feature
-     */
-    public boolean isEqual() {
-        return status;
     }
 }

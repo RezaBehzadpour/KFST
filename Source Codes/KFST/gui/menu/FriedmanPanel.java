@@ -5,7 +5,7 @@
  * For more information about KFST, please visit:
  *     http://kfst.uok.ac.ir/index.html
  *
- * Copyright (C) 2016 KFST development team at University of Kurdistan,
+ * Copyright (C) 2016-2018 KFST development team at University of Kurdistan,
  * Sanandaj, Iran.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -48,6 +48,7 @@ import KFST.util.CriticalValue;
 import KFST.util.MathFunc;
 import javax.swing.ImageIcon;
 //import javax.swing.UIManager;
+//import javax.swing.UnsupportedLookAndFeelException;
 
 /**
  * This java class is used to create and show a panel for analyzing the results
@@ -279,11 +280,7 @@ public class FriedmanPanel extends JFrame implements ActionListener {
         }
 
         //selects the type of sort
-        if (cb_worthOfVal.getSelectedItem().equals("descending order")) {
-            typeSort = true;
-        } else {
-            typeSort = false;
-        }
+        typeSort = cb_worthOfVal.getSelectedItem().equals("descending order");
 
         //computes average ranks
         tbl_values.setValueAt("Average rank", numRow + 1, 0);
@@ -387,7 +384,7 @@ public class FriedmanPanel extends JFrame implements ActionListener {
 //    public static void main(String[] args) {
 //        try {
 //            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-//        } catch (Exception e) {
+//        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
 //            System.out.println("Error setting native LAF: " + e);
 //        }
 //

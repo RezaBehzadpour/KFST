@@ -5,7 +5,7 @@
  * For more information about KFST, please visit:
  *     http://kfst.uok.ac.ir/index.html
  *
- * Copyright (C) 2016 KFST development team at University of Kurdistan,
+ * Copyright (C) 2016-2018 KFST development team at University of Kurdistan,
  * Sanandaj, Iran.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,42 +23,53 @@
  */
 package KFST.gui;
 
-import KFST.classifier.WekaClassifier;
+import KFST.classifier.*;
 import KFST.dataset.DatasetInfo;
-import KFST.dataset.WekaFileFormat;
-import KFST.featureSelection.filter.supervised.FisherScore;
-import KFST.featureSelection.filter.supervised.GainRatio;
-import KFST.featureSelection.filter.supervised.GiniIndex;
-import KFST.featureSelection.filter.supervised.InformationGain;
-import KFST.featureSelection.filter.supervised.LaplacianScore;
-import KFST.featureSelection.filter.supervised.MRMR;
-import KFST.featureSelection.filter.supervised.RRFS;
-import KFST.featureSelection.filter.supervised.SymmetricalUncertainty;
-import KFST.featureSelection.filter.unsupervised.IRRFSACO_1;
-import KFST.featureSelection.filter.unsupervised.IRRFSACO_2;
-import KFST.featureSelection.filter.unsupervised.MGSACO;
-import KFST.featureSelection.filter.unsupervised.MutualCorrelation;
-import KFST.featureSelection.filter.unsupervised.RRFSACO_1;
-import KFST.featureSelection.filter.unsupervised.RRFSACO_2;
-import KFST.featureSelection.filter.unsupervised.RSM;
-import KFST.featureSelection.filter.unsupervised.TermVariance;
-import KFST.featureSelection.filter.unsupervised.UFSACO;
+import KFST.featureSelection.embedded.EmbeddedApproach;
+import KFST.featureSelection.embedded.EmbeddedType;
+import KFST.featureSelection.filter.FilterApproach;
+import KFST.featureSelection.filter.FilterType;
+import KFST.featureSelection.filter.NonWeightedFilterType;
+import KFST.featureSelection.filter.WeightedFilterApproach;
+import KFST.featureSelection.filter.WeightedFilterType;
+import KFST.featureSelection.filter.supervised.SupervisedFilterType;
+import KFST.featureSelection.filter.unsupervised.UnsupervisedFilterType;
+import KFST.featureSelection.hybrid.HybridApproach;
+import KFST.featureSelection.hybrid.HybridType;
+import KFST.featureSelection.wrapper.WrapperApproach;
+import KFST.featureSelection.wrapper.WrapperType;
 import KFST.gui.classifier.DTClassifierPanel;
-import KFST.gui.classifier.SVMClassifierPanel;
-import KFST.gui.featureSelection.IRRFSACO_1Panel;
-import KFST.gui.featureSelection.IRRFSACO_2Panel;
-import KFST.gui.featureSelection.LaplacianScorePanel;
-import KFST.gui.featureSelection.MGSACOPanel;
-import KFST.gui.featureSelection.RRFSACO_1Panel;
-import KFST.gui.featureSelection.RRFSACO_2Panel;
-import KFST.gui.featureSelection.RRFSPanel;
-import KFST.gui.featureSelection.RSMPanel;
-import KFST.gui.featureSelection.UFSACOPanel;
+import KFST.gui.classifier.KNNClassifierPanel;
+import KFST.gui.classifier.svmClassifier.SVMClassifierPanel;
+import KFST.gui.featureSelection.embedded.MSVM_RFEPanel;
+import KFST.gui.featureSelection.embedded.decisionTreeBased.DecisionTreeBasedPanel;
+import KFST.gui.featureSelection.embedded.decisionTreeBased.TreeType;
+import KFST.gui.featureSelection.filter.IRRFSACO_1Panel;
+import KFST.gui.featureSelection.filter.IRRFSACO_2Panel;
+import KFST.gui.featureSelection.filter.LaplacianScorePanel;
+import KFST.gui.featureSelection.filter.MGSACOPanel;
+import KFST.gui.featureSelection.filter.RRFSACO_1Panel;
+import KFST.gui.featureSelection.filter.RRFSACO_2Panel;
+import KFST.gui.featureSelection.filter.RRFSPanel;
+import KFST.gui.featureSelection.filter.rsm.RSMPanel;
+import KFST.gui.featureSelection.filter.UFSACOPanel;
+import KFST.gui.featureSelection.filter.rsm.MultivariateMethodType;
+import KFST.gui.featureSelection.wrapper.ACOBased.OptimalACOPanel;
+import KFST.gui.featureSelection.wrapper.GABased.HGAFSPanel;
+import KFST.gui.featureSelection.wrapper.GABased.SimpleGAPanel;
+import KFST.gui.featureSelection.wrapper.PSOBased.BPSOPanel;
+import KFST.gui.featureSelection.wrapper.PSOBased.CPSOPanel;
+import KFST.gui.featureSelection.wrapper.PSOBased.HPSO_LSPanel;
+import KFST.gui.featureSelection.wrapper.PSOBased.PSO42Panel;
 import KFST.gui.menu.AboutPanel;
 import KFST.gui.menu.DiagramPanel;
 import KFST.gui.menu.FriedmanPanel;
 import KFST.gui.menu.PreprocessPanel;
-import KFST.gui.menu.SelectModePanel;
+import KFST.gui.menu.selectMode.SelectModePanel;
+import KFST.gui.menu.selectMode.SelectModeType;
+import KFST.result.ResultType;
+import KFST.result.Results;
+import KFST.util.FileFunc;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dialog;
@@ -69,10 +80,7 @@ import java.awt.event.InputEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
@@ -97,16 +105,18 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
-import KFST.util.MathFunc;
 import java.awt.Desktop;
+import java.awt.Rectangle;
 import java.net.URI;
+import java.net.URISyntaxException;
 import javax.swing.ImageIcon;
 //import javax.swing.SwingUtilities;
 //import javax.swing.UIManager;
+//import javax.swing.UnsupportedLookAndFeelException;
 
 /**
- * This java class is used to create and show the main panel of the project.
- * The management of all panels and forms have been done in this class.
+ * This java class is used to create and show the main panel of the project. The
+ * management of all panels and forms have been done in this class.
  *
  * @author Sina Tabakhi
  * @author Shahin Salavati
@@ -121,16 +131,19 @@ public class MainPanel extends JPanel {
     JButton btn_inputdst, btn_classlbl;
     JLabel lbl_dataset, lbl_inputdst, lbl_classlbl;
     JTextField txt_inputdst, txt_classLbl;
-    //--------------- TrainingTest Panel -----------------------------------------
+    //--------------- TrainingTest Panel --------------------------------------
     JButton btn_trainSet, btn_testSet, btn_classLabel;
     JLabel lbl_trainSet, lbl_testSet, lbl_classlabel;
     JTextField txt_trainSet, txt_testSet, txt_classLabel;
     //--------------- Feature Selection Panel ---------------------------------
     JTabbedPane tab_pane;
-    JPanel panel_filter, panel_wrapper, panel_embedded, panel_hybrid, panel_numFeat;
-    JComboBox cb_supervised, cb_unsupervised, cb_wrapper, cb_embedded, cb_hybrid;
+    JPanel panel_filter, panel_wrapper, panel_embedded, panel_hybrid,
+            panel_numFeat;
+    JComboBox cb_supervised, cb_unsupervised, cb_wrapper, cb_embedded,
+            cb_hybrid;
     JLabel lbl_sup, lbl_unsup, lbl_wrapper, lbl_embedded, lbl_hybrid;
-    JButton btn_moreOpFilter, btn_moreOpWrapper, btn_moreOpEmbedded, btn_moreOpHybrid;
+    JButton btn_moreOpFilter, btn_moreOpWrapper, btn_moreOpEmbedded,
+            btn_moreOpHybrid;
     JTextArea txtArea_feature;
     JScrollPane sc_feature;
     //--------------- Classifier Panel ----------------------------------------
@@ -145,56 +158,69 @@ public class MainPanel extends JPanel {
     EventHandler eh;
     JMenuBar menuBar;
     JMenu file, diagram, analyse, help;
-    JMenuItem mi_preprocess, mi_exit, mi_exeTime, mi_accur, mi_error, mi_friedman, mi_help, mi_about;
+    JMenuItem mi_preprocess, mi_exit, mi_exeTime, mi_accur, mi_error,
+            mi_friedman, mi_help, mi_about;
     JSeparator sep_file, sep_help;
     //--------------- Progress Bar --------------------------------------------
     JProgressBar progressBar;
     int progressValue, runCode = 0;
     //-------------- Other variables ------------------------------------------
-    private String pathProject;
-    private String pathDataCSV;
-    private String pathDataARFF;
-    private String typeKernel; //SVM classifier panel
-    private double confidence; //DT classifier panel
-    private int minNum; //DT classifier panel
+    private final String PATH_PROJECT;
+    private final String PATH_DATA_CSV;
+    private final String PATH_DATA_ARFF;
     private double simValue; //RRFS method
     private double constParam; //Laplacian score method
     private int KNearest; //Laplacian score method
     private int numSelection, sizeSubspace, elimination; //RSM method
-    private String multMethodName; //RSM method
+    private MultivariateMethodType multMethodName; //RSM method
     private int numIteration, numAnts, numFeatOfAnt; //ACO-based methods
     private double initPheromone, evRate, alpha, beta, q0; //ACO_based methods
-    DatasetInfo data;
-    WekaFileFormat arff;
+    private TreeType decisionTreeBasedMethodType; //DT based method[Embedded]
+    private double confidence; //DT based method[Embedded_C45]
+    private int minNum; //DT based method[Embedded_C45]
+    private int randomForestNumFeatures, maxDepth, randomForestNumIterations; //DT based method[Embedded _ Random Forest]
+    private int randomTreeKValue, randomTreeMaxDepth; //DT based method[Embedded_Random Tree]
+    private double randomTreeMinNum, randomTreeMinVarianceProp; //DT based method[Embedded_Rendom Tree]
+    private SVMClassifierPanel svmFeatureSelectionPanel;
+    private MSVM_RFEPanel msvmFeatureSelectionPanel; //MSVM_RFE method
+    private BPSOPanel bpsoFeatSelectionPanel; //BPSO method
+    private CPSOPanel cpsoFeatSelectionPanel; //CPSO method
+    private PSO42Panel pso42FeatSelectionPanel; //PSO(4-2) method
+    private HPSO_LSPanel hpsolsFeatSelectionPanel; //HPSO-LS method
+    private SimpleGAPanel simpleGAFeatSelectionPanel; //Simple GA method
+    private HGAFSPanel hgafsFeatSelectionPanel; //HGAFS method
+    private OptimalACOPanel optimalACOFeatSelectionPanel; //Optimal ACO method
+    private DatasetInfo data;
+    //-------------- Evaluation classifier panels -----------------------------
+    private SVMClassifierPanel svmEvaluationPanel;
+    private DTClassifierPanel dtEvaluationPanel;
+    private KNNClassifierPanel knnEvaluationPanel;
+    private Object selectedEvaluationClassifierPanel;
     //-------------- Result variables -----------------------------------------
-    private double[][] accuracies;
-    private double[][] errorRates;
-    private double[][] times;
-    private double[][] averageAccuracies;
-    private double[][] averageErrorRates;
-    private double[][] averageTimes;
     private int[] numSelectedSubsets;
+    private Results finalResults;
 
     /**
      * Creates new form MainPanel. This method is called from within the
      * constructor to initialize the form.
-     * 
+     *
      * @param path the path of the project
      */
     public MainPanel(String path) {
         eh = new EventHandler();
         setLayout(null);
 
-        /////////////////// set the path files ///////////////////////////////
-        pathProject = path + "\\";
-        pathDataCSV = pathProject + "CSV\\";
-        pathDataARFF = pathProject + "ARFF\\";
+        /////////////////// set the path files ////////////////////////////////
+        PATH_PROJECT = path + "\\";
+        PATH_DATA_CSV = PATH_PROJECT + "CSV\\";
+        PATH_DATA_ARFF = PATH_PROJECT + "ARFF\\";
 
-        /////////////////////// "File Paths" panel /////////////////////////////
+        /////////////////////// "File Paths" panel ////////////////////////////
         panel_filePath = new JPanel();
         panel_filePath.setBounds(10, 15, 825, 210);
         panel_filePath.setLayout(null);
-        panel_filePath.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "File paths"));
+        panel_filePath.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createEtchedBorder(), "File paths"));
         lbl_dataset = new JLabel("Dataset option:");
         lbl_dataset.setBounds(15, 25, 85, 20);
         bg_dataset = new ButtonGroup();
@@ -213,11 +239,12 @@ public class MainPanel extends JPanel {
         panel_filePath.add(rd_ttset);
         panel_filePath.add(lbl_dataset);
 
-        ///////////////// "Random Training/Test sets" panel //////////////////////
+        ///////////////// "Random Training/Test sets" panel ///////////////////
         panel_randomSet = new JPanel();
         panel_randomSet.setBounds(10, 60, 400, 140);
         panel_randomSet.setLayout(null);
-        panel_randomSet.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Random training/test sets"));
+        panel_randomSet.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createEtchedBorder(), "Random training/test sets"));
         lbl_inputdst = new JLabel("Input dataset:");
         lbl_inputdst.setBounds(15, 46, 80, 15);
         lbl_classlbl = new JLabel("Input class label:");
@@ -236,7 +263,6 @@ public class MainPanel extends JPanel {
         btn_inputdst.addActionListener(eh);
         btn_classlbl.addActionListener(eh);
 
-
         panel_randomSet.add(lbl_inputdst);
         panel_randomSet.add(lbl_classlbl);
         panel_randomSet.add(txt_inputdst);
@@ -244,11 +270,12 @@ public class MainPanel extends JPanel {
         panel_randomSet.add(btn_classlbl);
         panel_randomSet.add(btn_inputdst);
 
-        ////////////////// "Training/Test sets" panel ////////////////////////////
+        ////////////////// "Training/Test sets" panel /////////////////////////
         panel_ttSet = new JPanel();
         panel_ttSet.setBounds(415, 60, 400, 140);
         panel_ttSet.setLayout(null);
-        panel_ttSet.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Training/Test sets"));
+        panel_ttSet.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createEtchedBorder(), "Training/Test sets"));
         lbl_trainSet = new JLabel("Input training set:");
         lbl_trainSet.setBounds(15, 37, 90, 15);
         lbl_testSet = new JLabel("Input test set:");
@@ -291,7 +318,8 @@ public class MainPanel extends JPanel {
         panel_featureMethod = new JPanel();
         panel_featureMethod.setBounds(10, 235, 555, 160);
         panel_featureMethod.setLayout(null);
-        panel_featureMethod.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Feature selection approaches"));
+        panel_featureMethod.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createEtchedBorder(), "Feature selection approaches"));
         tab_pane = new JTabbedPane();
         tab_pane.setBounds(20, 25, 520, 120);
 
@@ -302,35 +330,16 @@ public class MainPanel extends JPanel {
         lbl_sup = new JLabel("Supervised:");
         lbl_sup.setBounds(10, 20, 120, 22);
         cb_supervised = new JComboBox();
-        cb_supervised.setModel(new DefaultComboBoxModel(new String[]{"none",
-                    "Information gain",
-                    "Gain ratio",
-                    "Symmetrical uncertainty",
-                    "Fisher score",
-                    "Gini index",
-                    "Laplacian score",
-                    "Minimal redundancy maximal relevance (MRMR)",
-                    "Relevance-redundancy feature selection (RRFS)"}));
+        cb_supervised.setModel(new DefaultComboBoxModel(
+                SupervisedFilterType.asList()));
         cb_supervised.setBounds(90, 20, 280, 22);
-
 
         lbl_unsup = new JLabel("Unsupervised:");
         lbl_unsup.setBounds(10, 55, 120, 22);
         cb_unsupervised = new JComboBox();
-        cb_unsupervised.setModel(new DefaultComboBoxModel(new String[]{"none",
-                    "Term variance",
-                    "Laplacian score",
-                    "Mutual correlation",
-                    "Random subspace method (RSM)",
-                    "Relevance-redundancy feature selection (RRFS)",
-                    "UFSACO",
-                    "RRFSACO_1",
-                    "RRFSACO_2",
-                    "IRRFSACO_1",
-                    "IRRFSACO_2",
-                    "MGSACO"}));
+        cb_unsupervised.setModel(new DefaultComboBoxModel(
+                UnsupervisedFilterType.asList()));
         cb_unsupervised.setBounds(90, 55, 280, 22);
-
 
         cb_supervised.addItemListener(eh);
         cb_unsupervised.addItemListener(eh);
@@ -340,7 +349,6 @@ public class MainPanel extends JPanel {
         btn_moreOpFilter.setEnabled(false);
         btn_moreOpFilter.addActionListener(eh);
 
-
         panel_filter.setLayout(null);
         panel_filter.add(lbl_sup);
         panel_filter.add(lbl_unsup);
@@ -348,14 +356,14 @@ public class MainPanel extends JPanel {
         panel_filter.add(cb_unsupervised);
         panel_filter.add(btn_moreOpFilter);
 
-
         //--------- Wrapper Panel-----------------------
         panel_wrapper = new JPanel();
         lbl_wrapper = new JLabel("Select method:");
         lbl_wrapper.setBounds(10, 35, 120, 22);
 
         cb_wrapper = new JComboBox();
-        cb_wrapper.setModel(new DefaultComboBoxModel(new String[]{"none"}));
+        cb_wrapper.setModel(new DefaultComboBoxModel(
+                WrapperType.asList()));
         cb_wrapper.setBounds(90, 35, 280, 22);
         cb_wrapper.addItemListener(eh);
 
@@ -364,12 +372,10 @@ public class MainPanel extends JPanel {
         btn_moreOpWrapper.setEnabled(false);
         btn_moreOpWrapper.addActionListener(eh);
 
-
         panel_wrapper.setLayout(null);
         panel_wrapper.add(cb_wrapper);
         panel_wrapper.add(lbl_wrapper);
         panel_wrapper.add(btn_moreOpWrapper);
-
 
         //--------- Embedded Panel---------------------
         panel_embedded = new JPanel();
@@ -377,7 +383,8 @@ public class MainPanel extends JPanel {
         lbl_embedded.setBounds(10, 35, 120, 22);
 
         cb_embedded = new JComboBox();
-        cb_embedded.setModel(new DefaultComboBoxModel(new String[]{"none"}));
+        cb_embedded.setModel(new DefaultComboBoxModel(
+                EmbeddedType.asList()));
         cb_embedded.setBounds(90, 35, 280, 22);
         cb_embedded.addItemListener(eh);
 
@@ -386,12 +393,10 @@ public class MainPanel extends JPanel {
         btn_moreOpEmbedded.setEnabled(false);
         btn_moreOpEmbedded.addActionListener(eh);
 
-
         panel_embedded.setLayout(null);
         panel_embedded.add(cb_embedded);
         panel_embedded.add(lbl_embedded);
         panel_embedded.add(btn_moreOpEmbedded);
-
 
         //--------- Hybrid Panel-----------------------
         panel_hybrid = new JPanel();
@@ -399,7 +404,8 @@ public class MainPanel extends JPanel {
         lbl_hybrid.setBounds(10, 35, 120, 22);
 
         cb_hybrid = new JComboBox();
-        cb_hybrid.setModel(new DefaultComboBoxModel(new String[]{"none"}));
+        cb_hybrid.setModel(new DefaultComboBoxModel(
+                HybridType.asList()));
         cb_hybrid.setBounds(90, 35, 280, 22);
         cb_hybrid.addItemListener(eh);
 
@@ -407,7 +413,6 @@ public class MainPanel extends JPanel {
         btn_moreOpHybrid.setBounds(400, 35, 105, 23);
         btn_moreOpHybrid.setEnabled(false);
         btn_moreOpHybrid.addActionListener(eh);
-
 
         panel_hybrid.setLayout(null);
         panel_hybrid.add(cb_hybrid);
@@ -422,18 +427,18 @@ public class MainPanel extends JPanel {
         sc_feature.setBounds(15, 25, 225, 120);
         sc_feature.setViewportView(txtArea_feature);
 
-
         panel_numFeat = new JPanel();
         panel_numFeat.setBounds(580, 235, 255, 160);
         panel_numFeat.setLayout(null);
-        panel_numFeat.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Numbers of selected features"));
+        panel_numFeat.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createEtchedBorder(), "Numbers of selected features"));
         panel_numFeat.add(sc_feature);
 
         //--------- sets all panel in the Feature Panel----------
         tab_pane.add("Filter", panel_filter);
         tab_pane.add("Wrapper", panel_wrapper);
         tab_pane.add("Embedded", panel_embedded);
-        tab_pane.add("Hybrid", panel_hybrid);
+        //tab_pane.add("Hybrid", panel_hybrid);
 
         panel_featureMethod.add(tab_pane);
 
@@ -441,12 +446,11 @@ public class MainPanel extends JPanel {
         panel_classifier = new JPanel();
         panel_classifier.setBounds(10, 405, 408, 140);
         panel_classifier.setLayout(null);
-        panel_classifier.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Classifier"));
+        panel_classifier.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createEtchedBorder(), "Classifier"));
         cb_classifier = new JComboBox();
-        cb_classifier.setModel(new DefaultComboBoxModel(new String[]{"none",
-                    "Support Vector Machine (SVM)",
-                    "Naive Bayes (NB)",
-                    "Decision Tree (C4.5)"}));
+        cb_classifier.setModel(new DefaultComboBoxModel(
+                ClassifierType.asList()));
         cb_classifier.setBounds(110, 40, 250, 22);
         lbl_classifier = new JLabel("Select classifier:");
         lbl_classifier.setBounds(15, 40, 140, 22);
@@ -466,9 +470,11 @@ public class MainPanel extends JPanel {
         panel_config = new JPanel();
         panel_config.setBounds(428, 405, 408, 140);
         panel_config.setLayout(null);
-        panel_config.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Run configuration"));
+        panel_config.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createEtchedBorder(), "Run configuration"));
         cb_start = new JComboBox();
-        cb_start.setModel(new DefaultComboBoxModel(new String[]{"none", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}));
+        cb_start.setModel(new DefaultComboBoxModel(new String[]{
+            "none", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}));
         cb_start.setBounds(130, 40, 200, 22);
         cb_start.addItemListener(eh);
         lbl_start = new JLabel("Number of runs:");
@@ -484,7 +490,6 @@ public class MainPanel extends JPanel {
         panel_config.add(btn_exit);
         panel_config.add(cb_start);
         panel_config.add(lbl_start);
-
 
         //---------------------------------------------------------------
         add(panel_filePath);
@@ -551,7 +556,6 @@ public class MainPanel extends JPanel {
         help.addSeparator();
         help.add(mi_about);
 
-
         menuBar.add(file);
         menuBar.add(diagram);
         menuBar.add(analyse);
@@ -569,7 +573,7 @@ public class MainPanel extends JPanel {
 
     /**
      * Recreates MainPanel based on the updated progress bar value.
-     * 
+     *
      * @param g the <code>Graphics</code> context in which to paint
      */
     @Override
@@ -584,8 +588,8 @@ public class MainPanel extends JPanel {
     class EventHandler implements ActionListener, ItemListener {
 
         /**
-         * The listener method for receiving action events.
-         * Invoked when an action occurs.
+         * The listener method for receiving action events. Invoked when an
+         * action occurs.
          *
          * @param e an action event
          */
@@ -635,8 +639,8 @@ public class MainPanel extends JPanel {
         }
 
         /**
-         * The listener method for receiving item events.
-         * Invoked when an item has been selected or deselected by the user.
+         * The listener method for receiving item events. Invoked when an item
+         * has been selected or deselected by the user.
          *
          * @param e an action event
          */
@@ -691,10 +695,14 @@ public class MainPanel extends JPanel {
         SelectModePanel selectPanel = new SelectModePanel();
         JDialog selecdlg = new JDialog(selectPanel);
         selectPanel.setVisible(true);
-        if (selectPanel.getNameMode().equals("Average")) {
-            DiagramPanel digPanel = new DiagramPanel(averageTimes, numSelectedSubsets, "Average execution time diagram", cb_classifier.getSelectedItem().toString(), "          Execution Time (s)", "average", pathProject);
-        } else if (selectPanel.getNameMode().equals("Total")) {
-            DiagramPanel digPanel = new DiagramPanel(times, numSelectedSubsets, "Execution time diagram", cb_classifier.getSelectedItem().toString(), "          Execution Time (s)", "iteration", pathProject);
+        if (selectPanel.getNameMode() == SelectModeType.AVERAGE) {
+            DiagramPanel digPanel = new DiagramPanel(finalResults.getPerformanceMeasures().getAverageTimeValues(), numSelectedSubsets,
+                    "Average execution time diagram", cb_classifier.getSelectedItem().toString(), "          Execution Time (s)",
+                    "average", PATH_PROJECT);
+        } else if (selectPanel.getNameMode() == SelectModeType.TOTAL) {
+            DiagramPanel digPanel = new DiagramPanel(finalResults.getPerformanceMeasures().getTimeValues(), numSelectedSubsets,
+                    "Execution time diagram", cb_classifier.getSelectedItem().toString(), "          Execution Time (s)",
+                    "iteration", PATH_PROJECT);
         }
     }
 
@@ -707,10 +715,14 @@ public class MainPanel extends JPanel {
         SelectModePanel selectPanel = new SelectModePanel();
         JDialog selecdlg = new JDialog(selectPanel);
         selectPanel.setVisible(true);
-        if (selectPanel.getNameMode().equals("Average")) {
-            DiagramPanel digPanel = new DiagramPanel(averageAccuracies, numSelectedSubsets, "Average classification accuracy diagram", cb_classifier.getSelectedItem().toString(), "Classification Accuracy (%)", "average", pathProject);
-        } else if (selectPanel.getNameMode().equals("Total")) {
-            DiagramPanel digPanel = new DiagramPanel(accuracies, numSelectedSubsets, "Classification accuracy diagram", cb_classifier.getSelectedItem().toString(), "Classification Accuracy (%)", "iteration", pathProject);
+        if (selectPanel.getNameMode() == SelectModeType.AVERAGE) {
+            DiagramPanel digPanel = new DiagramPanel(finalResults.getPerformanceMeasures().getAverageAccuracyValues(), numSelectedSubsets,
+                    "Average classification accuracy diagram", cb_classifier.getSelectedItem().toString(), "Classification Accuracy (%)",
+                    "average", PATH_PROJECT);
+        } else if (selectPanel.getNameMode() == SelectModeType.TOTAL) {
+            DiagramPanel digPanel = new DiagramPanel(finalResults.getPerformanceMeasures().getAccuracyValues(), numSelectedSubsets,
+                    "Classification accuracy diagram", cb_classifier.getSelectedItem().toString(), "Classification Accuracy (%)",
+                    "iteration", PATH_PROJECT);
         }
     }
 
@@ -723,10 +735,14 @@ public class MainPanel extends JPanel {
         SelectModePanel selectPanel = new SelectModePanel();
         JDialog selecdlg = new JDialog(selectPanel);
         selectPanel.setVisible(true);
-        if (selectPanel.getNameMode().equals("Average")) {
-            DiagramPanel digPanel = new DiagramPanel(averageErrorRates, numSelectedSubsets, "Average classification error rate diagram", cb_classifier.getSelectedItem().toString(), "Classification Error Rate (%)", "average", pathProject);
-        } else if (selectPanel.getNameMode().equals("Total")) {
-            DiagramPanel digPanel = new DiagramPanel(errorRates, numSelectedSubsets, "Classification error rate diagram", cb_classifier.getSelectedItem().toString(), "Classification Error Rate (%)", "iteration", pathProject);
+        if (selectPanel.getNameMode() == SelectModeType.AVERAGE) {
+            DiagramPanel digPanel = new DiagramPanel(finalResults.getPerformanceMeasures().getAverageErrorRateValues(), numSelectedSubsets,
+                    "Average classification error rate diagram", cb_classifier.getSelectedItem().toString(), "Classification Error Rate (%)",
+                    "average", PATH_PROJECT);
+        } else if (selectPanel.getNameMode() == SelectModeType.TOTAL) {
+            DiagramPanel digPanel = new DiagramPanel(finalResults.getPerformanceMeasures().getErrorRateValues(), numSelectedSubsets,
+                    "Classification error rate diagram", cb_classifier.getSelectedItem().toString(), "Classification Error Rate (%)",
+                    "iteration", PATH_PROJECT);
         }
     }
 
@@ -747,7 +763,7 @@ public class MainPanel extends JPanel {
     private void mi_helpActionPerformed(ActionEvent e) {
         try {
             Desktop.getDesktop().browse(new URI("http://kfst.uok.ac.ir/document.html"));
-        } catch (Exception ex) {
+        } catch (URISyntaxException | IOException ex) {
             Logger.getLogger(MainPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -758,7 +774,7 @@ public class MainPanel extends JPanel {
      * @param e an action event
      */
     private void mi_aboutActionPerformed(ActionEvent e) {
-        AboutPanel  aboutPan = new AboutPanel();
+        AboutPanel aboutPan = new AboutPanel();
         Dialog aboutdlg = new Dialog(aboutPan);
         aboutPan.setVisible(true);
     }
@@ -834,7 +850,9 @@ public class MainPanel extends JPanel {
      * @param e an action event
      */
     private void btn_moreOpFilterActionPerformed(ActionEvent e) {
-        if (cb_supervised.getSelectedItem().equals("Laplacian score")) {
+        FilterType suprvisedVersion = FilterType.parse(cb_supervised.getSelectedItem().toString());
+        FilterType unsupervisedVersion = FilterType.parse(cb_unsupervised.getSelectedItem().toString());
+        if (suprvisedVersion == FilterType.LAPLACIAN_SCORE) {
             LaplacianScorePanel lapScorePanel = new LaplacianScorePanel();
             Dialog lapScoreDlg = new Dialog(lapScorePanel);
             lapScorePanel.setUserValue(KNearest, constParam);
@@ -843,14 +861,14 @@ public class MainPanel extends JPanel {
             constParam = lapScorePanel.getConstParam();
 //            System.out.println("user value...   k-NN = " + KNearest
 //                    + "   constParam = " + constParam);
-        } else if (cb_supervised.getSelectedItem().equals("Relevance-redundancy feature selection (RRFS)")) {
+        } else if (suprvisedVersion == FilterType.RRFS) {
             RRFSPanel rrfsPanel = new RRFSPanel();
             Dialog rrfsDlg = new Dialog(rrfsPanel);
             rrfsPanel.setUserValue(simValue);
             rrfsPanel.setVisible(true);
             simValue = rrfsPanel.getSimilarity();
 //            System.out.println("user value:   simValue = " + simValue);
-        } else if (cb_unsupervised.getSelectedItem().equals("Laplacian score")) {
+        } else if (unsupervisedVersion == FilterType.LAPLACIAN_SCORE) {
             LaplacianScorePanel lapScorePanel = new LaplacianScorePanel();
             Dialog lapScoreDlg = new Dialog(lapScorePanel);
             lapScorePanel.setUserValue(KNearest, constParam);
@@ -859,7 +877,7 @@ public class MainPanel extends JPanel {
             constParam = lapScorePanel.getConstParam();
 //            System.out.println("user value...   k-NN = " + KNearest
 //                    + "   constParam = " + constParam);
-        } else if (cb_unsupervised.getSelectedItem().equals("Random subspace method (RSM)")) {
+        } else if (unsupervisedVersion == FilterType.RSM) {
             RSMPanel rsmPanel = new RSMPanel();
             Dialog rsmDlg = new Dialog(rsmPanel);
             rsmPanel.setUserValue(numSelection, sizeSubspace, elimination, multMethodName);
@@ -872,14 +890,14 @@ public class MainPanel extends JPanel {
 //                    + "   sizeSubspace = " + sizeSubspace
 //                    + "   elimination = " + elimination
 //                    + "    multMethodName = " + multMethodName);
-        } else if (cb_unsupervised.getSelectedItem().equals("Relevance-redundancy feature selection (RRFS)")) {
+        } else if (unsupervisedVersion == FilterType.RRFS) {
             RRFSPanel rrfsPanel = new RRFSPanel();
             Dialog rrfsDlg = new Dialog(rrfsPanel);
             rrfsPanel.setUserValue(simValue);
             rrfsPanel.setVisible(true);
             simValue = rrfsPanel.getSimilarity();
 //            System.out.println("user value:   simValue = " + simValue);
-        } else if (cb_unsupervised.getSelectedItem().equals("UFSACO")) {
+        } else if (unsupervisedVersion == FilterType.UFSACO) {
             UFSACOPanel ufsacoPanel = new UFSACOPanel();
             Dialog ufsacoDlg = new Dialog(ufsacoPanel);
             ufsacoPanel.setUserValue(initPheromone, numIteration, numAnts, numFeatOfAnt, evRate, beta, q0);
@@ -898,7 +916,7 @@ public class MainPanel extends JPanel {
 //                    + "   evRate = " + evRate
 //                    + "   beta = " + beta
 //                    + "   q0 = " + q0);
-        } else if (cb_unsupervised.getSelectedItem().equals("RRFSACO_1")) {
+        } else if (unsupervisedVersion == FilterType.RRFSACO_1) {
             RRFSACO_1Panel rrfsacoPanel = new RRFSACO_1Panel();
             Dialog rrfsacoDlg = new Dialog(rrfsacoPanel);
             rrfsacoPanel.setUserValue(numIteration, numAnts, numFeatOfAnt, evRate, beta, q0);
@@ -915,7 +933,7 @@ public class MainPanel extends JPanel {
 //                    + "   evRate = " + evRate
 //                    + "   beta = " + beta
 //                    + "   q0 = " + q0);
-        } else if (cb_unsupervised.getSelectedItem().equals("RRFSACO_2")) {
+        } else if (unsupervisedVersion == FilterType.RRFSACO_2) {
             RRFSACO_2Panel rrfsacoPanel = new RRFSACO_2Panel();
             Dialog rrfsacoDlg = new Dialog(rrfsacoPanel);
             rrfsacoPanel.setUserValue(initPheromone, numIteration, numAnts, numFeatOfAnt, evRate, alpha, beta, q0);
@@ -936,7 +954,7 @@ public class MainPanel extends JPanel {
 //                    + "   alpha = " + alpha
 //                    + "   beta = " + beta
 //                    + "   q0 = " + q0);
-        } else if (cb_unsupervised.getSelectedItem().equals("IRRFSACO_1")) {
+        } else if (unsupervisedVersion == FilterType.IRRFSACO_1) {
             IRRFSACO_1Panel irrfsacoPanel = new IRRFSACO_1Panel();
             Dialog irrfsacoDlg = new Dialog(irrfsacoPanel);
             irrfsacoPanel.setUserValue(numIteration, numAnts, numFeatOfAnt, evRate, beta, q0);
@@ -953,7 +971,7 @@ public class MainPanel extends JPanel {
 //                    + "   evRate = " + evRate
 //                    + "   beta = " + beta
 //                    + "   q0 = " + q0);
-        } else if (cb_unsupervised.getSelectedItem().equals("IRRFSACO_2")) {
+        } else if (unsupervisedVersion == FilterType.IRRFSACO_2) {
             IRRFSACO_2Panel irrfsacoPanel = new IRRFSACO_2Panel();
             Dialog irrfsacoDlg = new Dialog(irrfsacoPanel);
             irrfsacoPanel.setUserValue(initPheromone, numIteration, numAnts, numFeatOfAnt, evRate, alpha, beta, q0);
@@ -974,7 +992,7 @@ public class MainPanel extends JPanel {
 //                    + "   alpha = " + alpha
 //                    + "   beta = " + beta
 //                    + "   q0 = " + q0);
-        } else if (cb_unsupervised.getSelectedItem().equals("MGSACO")) {
+        } else if (unsupervisedVersion == FilterType.MGSACO) {
             MGSACOPanel mgsacoPanel = new MGSACOPanel();
             Dialog mgsacoDlg = new Dialog(mgsacoPanel);
             mgsacoPanel.setUserValue(initPheromone, numIteration, numAnts, evRate, beta, q0);
@@ -1000,7 +1018,262 @@ public class MainPanel extends JPanel {
      * @param e an action event
      */
     private void btn_moreOpWrapperActionPerformed(ActionEvent e) {
-        System.out.println("More option Wrapper");
+        WrapperType type = WrapperType.parse(cb_wrapper.getSelectedItem().toString());
+        if (type == WrapperType.BPSO) {
+            BPSOPanel bpsoPanel = new BPSOPanel();
+            Dialog bpsoDlg = new Dialog(bpsoPanel);
+            bpsoPanel.setUserValue(bpsoFeatSelectionPanel.getClassifierType(), bpsoFeatSelectionPanel.getSelectedClassifierPan(),
+                    bpsoFeatSelectionPanel.getNumIteration(), bpsoFeatSelectionPanel.getPopulationSize(),
+                    bpsoFeatSelectionPanel.getInertiaWeight(), bpsoFeatSelectionPanel.getC1(),
+                    bpsoFeatSelectionPanel.getC2(), bpsoFeatSelectionPanel.getStartPosInterval(),
+                    bpsoFeatSelectionPanel.getEndPosInterval(), bpsoFeatSelectionPanel.getMinVelocity(),
+                    bpsoFeatSelectionPanel.getMaxVelocity(), bpsoFeatSelectionPanel.getKFolds());
+
+            bpsoPanel.setVisible(true);
+            bpsoFeatSelectionPanel = bpsoPanel;
+//            System.out.println("classifier type = " + bpsoFeatSelectionPanel.getClassifierType().toString());
+//            if (bpsoFeatSelectionPanel.getClassifierType() == ClassifierType.SVM) {
+//                SVMClassifierPanel pan = (SVMClassifierPanel) bpsoFeatSelectionPanel.getSelectedClassifierPan();
+//                System.out.println("user:   kernel = " + pan.getKernel().toString()
+//                        + "   C = " + pan.getParameterC());
+//            } else if (bpsoFeatSelectionPanel.getClassifierType() == ClassifierType.DT) {
+//                DTClassifierPanel pan = (DTClassifierPanel) bpsoFeatSelectionPanel.getSelectedClassifierPan();
+//                System.out.println("user:    min num = " + pan.getMinNum()
+//                        + "  confidence = " + pan.getConfidence());
+//            } else if (bpsoFeatSelectionPanel.getClassifierType() == ClassifierType.KNN) {
+//                KNNClassifierPanel pan = (KNNClassifierPanel) bpsoFeatSelectionPanel.getSelectedClassifierPan();
+//                System.out.println("user:    KNN Value = " + pan.getKNNValue());
+//            }
+//            System.out.println("num iteration = " + bpsoFeatSelectionPanel.getNumIteration());
+//            System.out.println("population size = " + bpsoFeatSelectionPanel.getPopulationSize());
+//            System.out.println("inertia weight = " + bpsoFeatSelectionPanel.getInertiaWeight());
+//            System.out.println("c1 = " + bpsoFeatSelectionPanel.getC1());
+//            System.out.println("c2 = " + bpsoFeatSelectionPanel.getC2());
+//            System.out.println("start position = " + bpsoFeatSelectionPanel.getStartPosInterval());
+//            System.out.println("end position = " + bpsoFeatSelectionPanel.getEndPosInterval());
+//            System.out.println("min velocity = " + bpsoFeatSelectionPanel.getMinVelocity());
+//            System.out.println("max velocity = " + bpsoFeatSelectionPanel.getMaxVelocity());
+//            System.out.println("K fold = " + bpsoFeatSelectionPanel.getKFolds());
+        } else if (type == WrapperType.CPSO) {
+            CPSOPanel cpsoPanel = new CPSOPanel();
+            Dialog cpsoDlg = new Dialog(cpsoPanel);
+            cpsoPanel.setUserValue(cpsoFeatSelectionPanel.getClassifierType(), cpsoFeatSelectionPanel.getSelectedClassifierPan(),
+                    cpsoFeatSelectionPanel.getNumIteration(), cpsoFeatSelectionPanel.getPopulationSize(),
+                    cpsoFeatSelectionPanel.getInertiaWeight(), cpsoFeatSelectionPanel.getC1(),
+                    cpsoFeatSelectionPanel.getC2(), cpsoFeatSelectionPanel.getStartPosInterval(),
+                    cpsoFeatSelectionPanel.getEndPosInterval(), cpsoFeatSelectionPanel.getMinVelocity(),
+                    cpsoFeatSelectionPanel.getMaxVelocity(), cpsoFeatSelectionPanel.getKFolds(),
+                    cpsoFeatSelectionPanel.getTheta());
+
+            cpsoPanel.setVisible(true);
+            cpsoFeatSelectionPanel = cpsoPanel;
+//            System.out.println("classifier type = " + cpsoFeatSelectionPanel.getClassifierType().toString());
+//            if (cpsoFeatSelectionPanel.getClassifierType() == ClassifierType.SVM) {
+//                SVMClassifierPanel pan = (SVMClassifierPanel) cpsoFeatSelectionPanel.getSelectedClassifierPan();
+//                System.out.println("user:   kernel = " + pan.getKernel().toString()
+//                        + "   C = " + pan.getParameterC());
+//            } else if (cpsoFeatSelectionPanel.getClassifierType() == ClassifierType.DT) {
+//                DTClassifierPanel pan = (DTClassifierPanel) cpsoFeatSelectionPanel.getSelectedClassifierPan();
+//                System.out.println("user:    min num = " + pan.getMinNum()
+//                        + "  confidence = " + pan.getConfidence());
+//            } else if (cpsoFeatSelectionPanel.getClassifierType() == ClassifierType.KNN) {
+//                KNNClassifierPanel pan = (KNNClassifierPanel) cpsoFeatSelectionPanel.getSelectedClassifierPan();
+//                System.out.println("user:    KNN Value = " + pan.getKNNValue());
+//            }
+//            System.out.println("num iteration = " + cpsoFeatSelectionPanel.getNumIteration());
+//            System.out.println("population size = " + cpsoFeatSelectionPanel.getPopulationSize());
+//            System.out.println("inertia weight = " + cpsoFeatSelectionPanel.getInertiaWeight());
+//            System.out.println("c1 = " + cpsoFeatSelectionPanel.getC1());
+//            System.out.println("c2 = " + cpsoFeatSelectionPanel.getC2());
+//            System.out.println("start position = " + cpsoFeatSelectionPanel.getStartPosInterval());
+//            System.out.println("end position = " + cpsoFeatSelectionPanel.getEndPosInterval());
+//            System.out.println("min velocity = " + cpsoFeatSelectionPanel.getMinVelocity());
+//            System.out.println("max velocity = " + cpsoFeatSelectionPanel.getMaxVelocity());
+//            System.out.println("K fold = " + cpsoFeatSelectionPanel.getKFolds());
+//            System.out.println("theta = " + cpsoFeatSelectionPanel.getTheta());
+        } else if (type == WrapperType.PSO42) {
+            PSO42Panel pso42Panel = new PSO42Panel();
+            Dialog pso42Dlg = new Dialog(pso42Panel);
+            pso42Panel.setUserValue(pso42FeatSelectionPanel.getClassifierType(), pso42FeatSelectionPanel.getSelectedClassifierPan(),
+                    pso42FeatSelectionPanel.getNumIteration(), pso42FeatSelectionPanel.getPopulationSize(),
+                    pso42FeatSelectionPanel.getInertiaWeight(), pso42FeatSelectionPanel.getC1(),
+                    pso42FeatSelectionPanel.getC2(), pso42FeatSelectionPanel.getStartPosInterval(),
+                    pso42FeatSelectionPanel.getEndPosInterval(), pso42FeatSelectionPanel.getMinVelocity(),
+                    pso42FeatSelectionPanel.getMaxVelocity(), pso42FeatSelectionPanel.getKFolds(),
+                    pso42FeatSelectionPanel.getTheta());
+
+            pso42Panel.setVisible(true);
+            pso42FeatSelectionPanel = pso42Panel;
+//            System.out.println("classifier type = " + pso42FeatSelectionPanel.getClassifierType().toString());
+//            if (pso42FeatSelectionPanel.getClassifierType() == ClassifierType.SVM) {
+//                SVMClassifierPanel pan = (SVMClassifierPanel) pso42FeatSelectionPanel.getSelectedClassifierPan();
+//                System.out.println("user:   kernel = " + pan.getKernel().toString()
+//                        + "   C = " + pan.getParameterC());
+//            } else if (pso42FeatSelectionPanel.getClassifierType() == ClassifierType.DT) {
+//                DTClassifierPanel pan = (DTClassifierPanel) pso42FeatSelectionPanel.getSelectedClassifierPan();
+//                System.out.println("user:    min num = " + pan.getMinNum()
+//                        + "  confidence = " + pan.getConfidence());
+//            } else if (pso42FeatSelectionPanel.getClassifierType() == ClassifierType.KNN) {
+//                KNNClassifierPanel pan = (KNNClassifierPanel) pso42FeatSelectionPanel.getSelectedClassifierPan();
+//                System.out.println("user:    KNN Value = " + pan.getKNNValue());
+//            }
+//            System.out.println("num iteration = " + pso42FeatSelectionPanel.getNumIteration());
+//            System.out.println("population size = " + pso42FeatSelectionPanel.getPopulationSize());
+//            System.out.println("inertia weight = " + pso42FeatSelectionPanel.getInertiaWeight());
+//            System.out.println("c1 = " + pso42FeatSelectionPanel.getC1());
+//            System.out.println("c2 = " + pso42FeatSelectionPanel.getC2());
+//            System.out.println("start position = " + pso42FeatSelectionPanel.getStartPosInterval());
+//            System.out.println("end position = " + pso42FeatSelectionPanel.getEndPosInterval());
+//            System.out.println("min velocity = " + pso42FeatSelectionPanel.getMinVelocity());
+//            System.out.println("max velocity = " + pso42FeatSelectionPanel.getMaxVelocity());
+//            System.out.println("K fold = " + pso42FeatSelectionPanel.getKFolds());
+//            System.out.println("theta = " + pso42FeatSelectionPanel.getTheta());
+        } else if (type == WrapperType.HPSO_LS) {
+            HPSO_LSPanel hpsolsPanel = new HPSO_LSPanel();
+            Dialog hpsolsDlg = new Dialog(hpsolsPanel);
+            hpsolsPanel.setUserValue(hpsolsFeatSelectionPanel.getClassifierType(), hpsolsFeatSelectionPanel.getSelectedClassifierPan(),
+                    hpsolsFeatSelectionPanel.getNumIteration(), hpsolsFeatSelectionPanel.getPopulationSize(),
+                    hpsolsFeatSelectionPanel.getInertiaWeight(), hpsolsFeatSelectionPanel.getC1(),
+                    hpsolsFeatSelectionPanel.getC2(), hpsolsFeatSelectionPanel.getStartPosInterval(),
+                    hpsolsFeatSelectionPanel.getEndPosInterval(), hpsolsFeatSelectionPanel.getMinVelocity(),
+                    hpsolsFeatSelectionPanel.getMaxVelocity(), hpsolsFeatSelectionPanel.getKFolds(),
+                    hpsolsFeatSelectionPanel.getEpsilon(), hpsolsFeatSelectionPanel.getAlpha());
+
+            hpsolsPanel.setVisible(true);
+            hpsolsFeatSelectionPanel = hpsolsPanel;
+//            System.out.println("classifier type = " + hpsolsFeatSelectionPanel.getClassifierType().toString());
+//            if (hpsolsFeatSelectionPanel.getClassifierType() == ClassifierType.SVM) {
+//                SVMClassifierPanel pan = (SVMClassifierPanel) hpsolsFeatSelectionPanel.getSelectedClassifierPan();
+//                System.out.println("user:   kernel = " + pan.getKernel().toString()
+//                        + "   C = " + pan.getParameterC());
+//            } else if (hpsolsFeatSelectionPanel.getClassifierType() == ClassifierType.DT) {
+//                DTClassifierPanel pan = (DTClassifierPanel) hpsolsFeatSelectionPanel.getSelectedClassifierPan();
+//                System.out.println("user:    min num = " + pan.getMinNum()
+//                        + "  confidence = " + pan.getConfidence());
+//            } else if (hpsolsFeatSelectionPanel.getClassifierType() == ClassifierType.KNN) {
+//                KNNClassifierPanel pan = (KNNClassifierPanel) hpsolsFeatSelectionPanel.getSelectedClassifierPan();
+//                System.out.println("user:    KNN Value = " + pan.getKNNValue());
+//            }
+//            System.out.println("num iteration = " + hpsolsFeatSelectionPanel.getNumIteration());
+//            System.out.println("population size = " + hpsolsFeatSelectionPanel.getPopulationSize());
+//            System.out.println("inertia weight = " + hpsolsFeatSelectionPanel.getInertiaWeight());
+//            System.out.println("c1 = " + hpsolsFeatSelectionPanel.getC1());
+//            System.out.println("c2 = " + hpsolsFeatSelectionPanel.getC2());
+//            System.out.println("start position = " + hpsolsFeatSelectionPanel.getStartPosInterval());
+//            System.out.println("end position = " + hpsolsFeatSelectionPanel.getEndPosInterval());
+//            System.out.println("min velocity = " + hpsolsFeatSelectionPanel.getMinVelocity());
+//            System.out.println("max velocity = " + hpsolsFeatSelectionPanel.getMaxVelocity());
+//            System.out.println("K fold = " + hpsolsFeatSelectionPanel.getKFolds());
+//            System.out.println("epsilon = " + hpsolsFeatSelectionPanel.getEpsilon());
+//            System.out.println("alpha = " + hpsolsFeatSelectionPanel.getAlpha());
+        } else if (type == WrapperType.SIMPLE_GA) {
+            SimpleGAPanel simpleGAPanel = new SimpleGAPanel();
+            Dialog simpleGADlg = new Dialog(simpleGAPanel);
+            simpleGAPanel.setUserValue(simpleGAFeatSelectionPanel.getClassifierType(), simpleGAFeatSelectionPanel.getSelectedClassifierPan(),
+                    simpleGAFeatSelectionPanel.getSelectionType(), simpleGAFeatSelectionPanel.getCrossOverType(),
+                    simpleGAFeatSelectionPanel.getMutationType(), simpleGAFeatSelectionPanel.getReplacementType(),
+                    simpleGAFeatSelectionPanel.getNumIteration(), simpleGAFeatSelectionPanel.getPopulationSize(),
+                    simpleGAFeatSelectionPanel.getCrossoverRate(), simpleGAFeatSelectionPanel.getMutationRate(),
+                    simpleGAFeatSelectionPanel.getKFolds());
+
+            simpleGAPanel.setVisible(true);
+            simpleGAFeatSelectionPanel = simpleGAPanel;
+
+//            System.out.println("classifier type = " + simpleGAFeatSelectionPanel.getClassifierType().toString());
+//            if (simpleGAFeatSelectionPanel.getClassifierType() == ClassifierType.SVM) {
+//                SVMClassifierPanel pan = (SVMClassifierPanel) simpleGAFeatSelectionPanel.getSelectedClassifierPan();
+//                System.out.println("user:   kernel = " + pan.getKernel().toString()
+//                        + "   C = " + pan.getParameterC());
+//            } else if (simpleGAFeatSelectionPanel.getClassifierType() == ClassifierType.DT) {
+//                DTClassifierPanel pan = (DTClassifierPanel) simpleGAFeatSelectionPanel.getSelectedClassifierPan();
+//                System.out.println("user:    min num = " + pan.getMinNum()
+//                        + "  confidence = " + pan.getConfidence());
+//            } else if (simpleGAFeatSelectionPanel.getClassifierType() == ClassifierType.KNN) {
+//                KNNClassifierPanel pan = (KNNClassifierPanel) simpleGAFeatSelectionPanel.getSelectedClassifierPan();
+//                System.out.println("user:    KNN Value = " + pan.getKNNValue());
+//            }
+//            System.out.println("selection type = " + simpleGAFeatSelectionPanel.getSelectionType().toString());
+//            System.out.println("crossover type = " + simpleGAFeatSelectionPanel.getCrossOverType().toString());
+//            System.out.println("mutation type = " + simpleGAFeatSelectionPanel.getMutationType().toString());
+//            System.out.println("replacement type = " + simpleGAFeatSelectionPanel.getReplacementType().toString());
+//            System.out.println("num iteration = " + simpleGAFeatSelectionPanel.getNumIteration());
+//            System.out.println("population size = " + simpleGAFeatSelectionPanel.getPopulationSize());
+//            System.out.println("crossover rate = " + simpleGAFeatSelectionPanel.getCrossoverRate());
+//            System.out.println("mutation rate = " + simpleGAFeatSelectionPanel.getMutationRate());
+//            System.out.println("K fold = " + simpleGAFeatSelectionPanel.getKFolds());
+        } else if (type == WrapperType.HGAFS) {
+            HGAFSPanel hgafsPanel = new HGAFSPanel();
+            Dialog hgafsDlg = new Dialog(hgafsPanel);
+            hgafsPanel.setUserValue(hgafsFeatSelectionPanel.getClassifierType(), hgafsFeatSelectionPanel.getSelectedClassifierPan(),
+                    hgafsFeatSelectionPanel.getSelectionType(), hgafsFeatSelectionPanel.getCrossOverType(),
+                    hgafsFeatSelectionPanel.getMutationType(), hgafsFeatSelectionPanel.getReplacementType(),
+                    hgafsFeatSelectionPanel.getNumIteration(), hgafsFeatSelectionPanel.getPopulationSize(),
+                    hgafsFeatSelectionPanel.getCrossoverRate(), hgafsFeatSelectionPanel.getMutationRate(),
+                    hgafsFeatSelectionPanel.getKFolds(), hgafsFeatSelectionPanel.getEpsilon(),
+                    hgafsFeatSelectionPanel.getMu());
+
+            hgafsPanel.setVisible(true);
+            hgafsFeatSelectionPanel = hgafsPanel;
+
+//            System.out.println("classifier type = " + hgafsFeatSelectionPanel.getClassifierType().toString());
+//            if (hgafsFeatSelectionPanel.getClassifierType() == ClassifierType.SVM) {
+//                SVMClassifierPanel pan = (SVMClassifierPanel) hgafsFeatSelectionPanel.getSelectedClassifierPan();
+//                System.out.println("user:   kernel = " + pan.getKernel().toString()
+//                        + "   C = " + pan.getParameterC());
+//            } else if (hgafsFeatSelectionPanel.getClassifierType() == ClassifierType.DT) {
+//                DTClassifierPanel pan = (DTClassifierPanel) hgafsFeatSelectionPanel.getSelectedClassifierPan();
+//                System.out.println("user:    min num = " + pan.getMinNum()
+//                        + "  confidence = " + pan.getConfidence());
+//            } else if (hgafsFeatSelectionPanel.getClassifierType() == ClassifierType.KNN) {
+//                KNNClassifierPanel pan = (KNNClassifierPanel) hgafsFeatSelectionPanel.getSelectedClassifierPan();
+//                System.out.println("user:    KNN Value = " + pan.getKNNValue());
+//            }
+//            System.out.println("selection type = " + hgafsFeatSelectionPanel.getSelectionType().toString());
+//            System.out.println("crossover type = " + hgafsFeatSelectionPanel.getCrossOverType().toString());
+//            System.out.println("mutation type = " + hgafsFeatSelectionPanel.getMutationType().toString());
+//            System.out.println("replacement type = " + hgafsFeatSelectionPanel.getReplacementType().toString());
+//            System.out.println("num iteration = " + hgafsFeatSelectionPanel.getNumIteration());
+//            System.out.println("population size = " + hgafsFeatSelectionPanel.getPopulationSize());
+//            System.out.println("crossover rate = " + hgafsFeatSelectionPanel.getCrossoverRate());
+//            System.out.println("mutation rate = " + hgafsFeatSelectionPanel.getMutationRate());
+//            System.out.println("K fold = " + hgafsFeatSelectionPanel.getKFolds());
+//            System.out.println("epsilon = " + hgafsFeatSelectionPanel.getEpsilon());
+//            System.out.println("mu = " + hgafsFeatSelectionPanel.getMu());
+        } else if (type == WrapperType.OPTIMAL_ACO) {
+            OptimalACOPanel optimalacoPanel = new OptimalACOPanel();
+            Dialog optimalacoDlg = new Dialog(optimalacoPanel);
+            optimalacoPanel.setUserValue(optimalACOFeatSelectionPanel.getClassifierType(), optimalACOFeatSelectionPanel.getSelectedClassifierPan(),
+                    optimalACOFeatSelectionPanel.getNumIteration(), optimalACOFeatSelectionPanel.getColonySize(),
+                    optimalACOFeatSelectionPanel.getAlpha(), optimalACOFeatSelectionPanel.getBeta(),
+                    optimalACOFeatSelectionPanel.getEvRate(), optimalACOFeatSelectionPanel.getKFolds(),
+                    optimalACOFeatSelectionPanel.getInitPheromone(), optimalACOFeatSelectionPanel.getPhi());
+
+            optimalacoPanel.setVisible(true);
+            optimalACOFeatSelectionPanel = optimalacoPanel;
+
+//            System.out.println("classifier type = " + optimalACOFeatSelectionPanel.getClassifierType().toString());
+//            if (optimalACOFeatSelectionPanel.getClassifierType() == ClassifierType.SVM) {
+//                SVMClassifierPanel pan = (SVMClassifierPanel) optimalACOFeatSelectionPanel.getSelectedClassifierPan();
+//                System.out.println("user:   kernel = " + pan.getKernel().toString()
+//                        + "   C = " + pan.getParameterC());
+//            } else if (optimalACOFeatSelectionPanel.getClassifierType() == ClassifierType.DT) {
+//                DTClassifierPanel pan = (DTClassifierPanel) optimalACOFeatSelectionPanel.getSelectedClassifierPan();
+//                System.out.println("user:    min num = " + pan.getMinNum()
+//                        + "  confidence = " + pan.getConfidence());
+//            } else if (optimalACOFeatSelectionPanel.getClassifierType() == ClassifierType.KNN) {
+//                KNNClassifierPanel pan = (KNNClassifierPanel) optimalACOFeatSelectionPanel.getSelectedClassifierPan();
+//                System.out.println("user:    KNN Value = " + pan.getKNNValue());
+//            }
+//
+//            System.out.println("num iteration = " + optimalACOFeatSelectionPanel.getNumIteration());
+//            System.out.println("colony size = " + optimalACOFeatSelectionPanel.getColonySize());
+//            System.out.println("alpha = " + optimalACOFeatSelectionPanel.getAlpha());
+//            System.out.println("beta = " + optimalACOFeatSelectionPanel.getBeta());
+//            System.out.println("evRate = " + optimalACOFeatSelectionPanel.getEvRate());
+//            System.out.println("K fold = " + optimalACOFeatSelectionPanel.getKFolds());
+//            System.out.println("init pheromone = " + optimalACOFeatSelectionPanel.getInitPheromone());
+//            System.out.println("phi = " + optimalACOFeatSelectionPanel.getPhi());
+        }
     }
 
     /**
@@ -1009,7 +1282,99 @@ public class MainPanel extends JPanel {
      * @param e an action event
      */
     private void btn_moreOpEmbeddedActionPerformed(ActionEvent e) {
-        System.out.println("More option Embedded");
+        EmbeddedType type = EmbeddedType.parse(cb_embedded.getSelectedItem().toString());
+        if (type == EmbeddedType.DECISION_TREE_BASED) {
+            DecisionTreeBasedPanel dtBasedPanel = new DecisionTreeBasedPanel();
+            Dialog dtBasedDlg = new Dialog(dtBasedPanel);
+            if (decisionTreeBasedMethodType == TreeType.C45) {
+                dtBasedPanel.setUserValue(confidence, minNum);
+            } else if (decisionTreeBasedMethodType == TreeType.RANDOM_TREE) {
+                dtBasedPanel.setUserValue(randomTreeKValue, randomTreeMaxDepth, randomTreeMinNum, randomTreeMinVarianceProp);
+            }
+            dtBasedPanel.removeTreeType(TreeType.RANDOM_FOREST);
+            dtBasedPanel.setVisible(true);
+            decisionTreeBasedMethodType = dtBasedPanel.getTreeType();
+            if (decisionTreeBasedMethodType == TreeType.C45) {
+                confidence = dtBasedPanel.getConfidence();
+                minNum = dtBasedPanel.getMinNum();
+//                System.out.println("user value...   " + decisionTreeBasedMethodType.toString()
+//                        + "   confidence = " + confidence
+//                        + "   minNum = " + minNum);
+            } else if (decisionTreeBasedMethodType == TreeType.RANDOM_TREE) {
+                randomTreeKValue = dtBasedPanel.getRandomTreeKValue();
+                randomTreeMaxDepth = dtBasedPanel.getRandomTreeMaxDepth();
+                randomTreeMinNum = dtBasedPanel.getRandomTreeMinNum();
+                randomTreeMinVarianceProp = dtBasedPanel.getRandomTreeMinVarianceProp();
+//                System.out.println("user value...   " + decisionTreeBasedMethodType.toString()
+//                        + "   randomTreeKValue = " + randomTreeKValue
+//                        + "   randomTreeMaxDepth = " + randomTreeMaxDepth
+//                        + "   randomTreeMinNum = " + randomTreeMinNum
+//                        + "   randomTreeMinVarianceProp = " + randomTreeMinVarianceProp);
+            }
+        } else if (type == EmbeddedType.RANDOM_FOREST_METHOD) {
+            DecisionTreeBasedPanel dtBasedPanel = new DecisionTreeBasedPanel();
+            Dialog dtBasedDlg = new Dialog(dtBasedPanel);
+            dtBasedPanel.setUserValue(randomForestNumFeatures, maxDepth, randomForestNumIterations);
+            dtBasedPanel.removeTreeType(TreeType.C45, TreeType.RANDOM_TREE);
+            dtBasedPanel.setMethodTitle("Random forest settings:");
+            dtBasedPanel.setMethodDescription("<html> Random forest uses the importance of features for feature selection. </html>");
+            dtBasedPanel.setVisible(true);
+            decisionTreeBasedMethodType = dtBasedPanel.getTreeType();
+            randomForestNumFeatures = dtBasedPanel.getRandomForestNumFeatures();
+            maxDepth = dtBasedPanel.getMaxDepth();
+            randomForestNumIterations = dtBasedPanel.getRandomForestNumIterations();
+//            System.out.println("user value...   " + decisionTreeBasedMethodType.toString()
+//                    + "   randomForestNumFeatures = " + randomForestNumFeatures
+//                    + "   maxDepth = " + maxDepth
+//                    + "   randomforestNumIterations = " + randomForestNumIterations);
+        } else if (type == EmbeddedType.SVM_RFE) {
+            SVMClassifierPanel svmPanel = new SVMClassifierPanel();
+            Dialog svmDlg = new Dialog(svmPanel);
+            svmPanel.setUserValue(svmFeatureSelectionPanel.getKernel(), svmFeatureSelectionPanel.getParameterC());
+            svmPanel.setEnableKernelType(false);
+            svmPanel.setMethodTitle("SVM_RFE settings:");
+            svmPanel.setMethodDescription("<html>Support vector machine method based on recursive feature elimination (SVM_RFE).</html>");
+            svmPanel.setVisible(true);
+            svmFeatureSelectionPanel = svmPanel;
+//            System.out.println("kernel = " + svmFeatureSelectionPanel.getKernel().toString()
+//                    + "   C = " + svmFeatureSelectionPanel.getParameterC());
+        } else if (type == EmbeddedType.MSVM_RFE) {
+            MSVM_RFEPanel msvmPanel = new MSVM_RFEPanel();
+            Dialog msvmDlg = new Dialog(msvmPanel);
+            msvmPanel.setUserValue(msvmFeatureSelectionPanel.getKernel(), msvmFeatureSelectionPanel.getParameterC(),
+                    msvmFeatureSelectionPanel.getNumFold(), msvmFeatureSelectionPanel.getNumRun());
+            msvmPanel.setEnableKernelType(false);
+            msvmPanel.setVisible(true);
+            msvmFeatureSelectionPanel = msvmPanel;
+//            System.out.println("kernel = " + msvmFeatureSelectionPanel.getKernel().toString()
+//                    + "   C = " + msvmFeatureSelectionPanel.getParameterC()
+//                    + "   Fold = " + msvmFeatureSelectionPanel.getNumFold()
+//                    + "   numRun = " + msvmFeatureSelectionPanel.getNumRun());
+        } else if (type == EmbeddedType.OVO_SVM_RFE) {
+            SVMClassifierPanel svmPanel = new SVMClassifierPanel();
+            Dialog svmDlg = new Dialog(svmPanel);
+            svmPanel.setUserValue(svmFeatureSelectionPanel.getKernel(), svmFeatureSelectionPanel.getParameterC());
+            svmPanel.setEnableKernelType(false);
+            svmPanel.setMethodTitle("OVO_SVM_RFE settings:");
+            svmPanel.setMethodDescription("<html>OVO_SVM_RFE method is used for multiclass classification problem in which one-versus-one (OVO) strategy is applied to construct binary classifiers. The feature selection process is based on SVM_RFE method.</html>");
+            svmPanel.setMethodDescriptionPosition(new Rectangle(10, 35, 400, 80));
+            svmPanel.setVisible(true);
+            svmFeatureSelectionPanel = svmPanel;
+//            System.out.println("kernel = " + svmFeatureSelectionPanel.getKernel().toString()
+//                    + "   C = " + svmFeatureSelectionPanel.getParameterC());
+        } else if (type == EmbeddedType.OVA_SVM_RFE) {
+            SVMClassifierPanel svmPanel = new SVMClassifierPanel();
+            Dialog svmDlg = new Dialog(svmPanel);
+            svmPanel.setUserValue(svmFeatureSelectionPanel.getKernel(), svmFeatureSelectionPanel.getParameterC());
+            svmPanel.setEnableKernelType(false);
+            svmPanel.setMethodTitle("OVA_SVM_RFE settings:");
+            svmPanel.setMethodDescription("<html>OVA_SVM_RFE method is used for multiclass classification problem in which one-versus-all (OVA) strategy is applied to construct binary classifiers. The feature selection process is based on SVM_RFE method.</html>");
+            svmPanel.setMethodDescriptionPosition(new Rectangle(10, 35, 400, 80));
+            svmPanel.setVisible(true);
+            svmFeatureSelectionPanel = svmPanel;
+//            System.out.println("kernel = " + svmFeatureSelectionPanel.getKernel().toString()
+//                    + "   C = " + svmFeatureSelectionPanel.getParameterC());
+        }
     }
 
     /**
@@ -1027,21 +1392,43 @@ public class MainPanel extends JPanel {
      * @param e an action event
      */
     private void btn_moreOpClassifierActionPerformed(ActionEvent e) {
-        if (cb_classifier.getSelectedItem().equals("Support Vector Machine (SVM)")) {
-            SVMClassifierPanel svmPanel = new SVMClassifierPanel();
-            Dialog svmDlg = new Dialog(svmPanel);
-            svmPanel.setUserValue(typeKernel);
-            svmPanel.setVisible(true);
-            typeKernel = svmPanel.getKernel();
-//            System.out.println("kernel = " + typeKernel);
-        } else if (cb_classifier.getSelectedItem().equals("Decision Tree (C4.5)")) {
-            DTClassifierPanel dtPanel = new DTClassifierPanel();
-            Dialog dtDlg = new Dialog(dtPanel);
-            dtPanel.setUserValue(confidence, minNum);
-            dtPanel.setVisible(true);
-            confidence = dtPanel.getConfidence();
-            minNum = dtPanel.getMinNum();
-//            System.out.println("min num = " + minNum + "  confidence = " + confidence);
+        ClassifierType classifierType = ClassifierType.parse(cb_classifier.getSelectedItem().toString());
+        if (classifierType == ClassifierType.SVM) {
+            SVMClassifierPanel currentPanel = (SVMClassifierPanel) selectedEvaluationClassifierPanel;
+            svmEvaluationPanel = new SVMClassifierPanel();
+            Dialog svmDlg = new Dialog(svmEvaluationPanel);
+            svmEvaluationPanel.setUserValue(currentPanel.getKernel(), currentPanel.getParameterC());
+            svmEvaluationPanel.setVisible(true);
+            //typeKernel = svmEvaluationPanel.getKernel();
+            selectedEvaluationClassifierPanel = svmEvaluationPanel;
+            //System.out.println("kernel = " + typeKernel);
+//            System.out.println("kernel = " + svmEvaluationPanel.getKernel().toString()
+//                    + "   C = " + svmEvaluationPanel.getParameterC() + "\n"
+//                    + "kernel = " + ((SVMClassifierPanel) selectedEvaluationClassifierPanel).getKernel().toString()
+//                    + "   C = " + ((SVMClassifierPanel) selectedEvaluationClassifierPanel).getParameterC());
+        } else if (classifierType == ClassifierType.DT) {
+            DTClassifierPanel currentPanel = (DTClassifierPanel) selectedEvaluationClassifierPanel;
+            dtEvaluationPanel = new DTClassifierPanel();
+            Dialog dtDlg = new Dialog(dtEvaluationPanel);
+            dtEvaluationPanel.setUserValue(currentPanel.getConfidence(), currentPanel.getMinNum());
+            dtEvaluationPanel.setVisible(true);
+            //confidence = dtEvaluationPanel.getConfidence();
+            //minNum = dtEvaluationPanel.getMinNum();
+            selectedEvaluationClassifierPanel = dtEvaluationPanel;
+            //System.out.println("min num = " + minNum + "  confidence = " + confidence);
+//            System.out.println("min num = " + dtEvaluationPanel.getMinNum() + "  confidence = " + dtEvaluationPanel.getConfidence() + "\n"
+//                    + "min num = " + ((DTClassifierPanel) selectedEvaluationClassifierPanel).getMinNum() + "  confidence = " + ((DTClassifierPanel) selectedEvaluationClassifierPanel).getConfidence());
+        } else if (classifierType == ClassifierType.KNN) {
+            KNNClassifierPanel currentPanel = (KNNClassifierPanel) selectedEvaluationClassifierPanel;
+            knnEvaluationPanel = new KNNClassifierPanel();
+            Dialog dtDlg = new Dialog(knnEvaluationPanel);
+            knnEvaluationPanel.setUserValue(currentPanel.getKNNValue());
+            knnEvaluationPanel.setVisible(true);
+            //confidence = knnEvaluationPanel.getKNNValue();
+            selectedEvaluationClassifierPanel = knnEvaluationPanel;
+            //System.out.println("KNN Value = " + minNum);
+//            System.out.println("KNN Value = " + knnEvaluationPanel.getKNNValue() + "\n"
+//                    + "KNN Value = " + ((KNNClassifierPanel) selectedEvaluationClassifierPanel).getKNNValue());
         }
     }
 
@@ -1069,24 +1456,11 @@ public class MainPanel extends JPanel {
                 data.preProcessing(txt_trainSet.getText(), txt_testSet.getText(), txt_classLabel.getText());
             }
         }
-        arff = new WekaFileFormat();
 
         if (printErrorMessages()) {
             //delete old CSV and ARFF files
-            File dir1 = new File(pathDataCSV);
-            File dir2 = new File(pathDataARFF);
-            if (dir1.isDirectory()) {
-                File[] directory = dir1.listFiles();
-                for (int i = 0; i < directory.length; i++) {
-                    directory[i].delete();
-                }
-            }
-            if (dir2.isDirectory()) {
-                File[] directory = dir2.listFiles();
-                for (int i = 0; i < directory.length; i++) {
-                    directory[i].delete();
-                }
-            }
+            FileFunc.deleteFilesInDirectory(PATH_DATA_CSV);
+            FileFunc.deleteFilesInDirectory(PATH_DATA_ARFF);
 
             //runs the progress bar
             Counter c = new Counter();
@@ -1124,7 +1498,6 @@ public class MainPanel extends JPanel {
         btn_trainSet.setEnabled(false);
         btn_testSet.setEnabled(false);
         btn_classLabel.setEnabled(false);
-
 
         txt_inputdst.setEnabled(true);
         txt_inputdst.setBackground(Color.WHITE);
@@ -1166,12 +1539,13 @@ public class MainPanel extends JPanel {
      * @param e an action event
      */
     private void cb_supervisedItemStateChanged(ItemEvent e) {
-        if (!cb_supervised.getSelectedItem().equals("none")) {
-            cb_unsupervised.setSelectedItem("none");
-            cb_wrapper.setSelectedItem("none");
-            cb_embedded.setSelectedItem("none");
-            cb_hybrid.setSelectedItem("none");
-            if (cb_supervised.getSelectedItem().equals("Laplacian score")) {
+        FilterType filterType = FilterType.parse(cb_supervised.getSelectedItem().toString());
+        if (filterType != FilterType.NONE) {
+            cb_unsupervised.setSelectedItem(FilterType.NONE.toString());
+            cb_wrapper.setSelectedItem(WrapperType.NONE.toString());
+            cb_embedded.setSelectedItem(EmbeddedType.NONE.toString());
+            cb_hybrid.setSelectedItem(HybridType.NONE.toString());
+            if (filterType == FilterType.LAPLACIAN_SCORE) {
                 LaplacianScorePanel lapScorePanel = new LaplacianScorePanel();
                 lapScorePanel.setDefaultValue();
                 KNearest = lapScorePanel.getKNearest();
@@ -1179,7 +1553,7 @@ public class MainPanel extends JPanel {
                 btn_moreOpFilter.setEnabled(true);
 //                System.out.println("default:   k-NN = " + KNearest
 //                        + "   constParam = " + constParam);
-            } else if (cb_supervised.getSelectedItem().equals("Relevance-redundancy feature selection (RRFS)")) {
+            } else if (filterType == FilterType.RRFS) {
                 RRFSPanel rrfsPanel = new RRFSPanel();
                 rrfsPanel.setDefaultValue();
                 simValue = rrfsPanel.getSimilarity();
@@ -1199,12 +1573,13 @@ public class MainPanel extends JPanel {
      * @param e an action event
      */
     private void cb_unsupervisedItemStateChanged(ItemEvent e) {
-        if (!cb_unsupervised.getSelectedItem().equals("none")) {
-            cb_supervised.setSelectedItem("none");
-            cb_wrapper.setSelectedItem("none");
-            cb_embedded.setSelectedItem("none");
-            cb_hybrid.setSelectedItem("none");
-            if (cb_unsupervised.getSelectedItem().equals("Laplacian score")) {
+        FilterType filterType = FilterType.parse(cb_unsupervised.getSelectedItem().toString());
+        if (filterType != FilterType.NONE) {
+            cb_supervised.setSelectedItem(FilterType.NONE.toString());
+            cb_wrapper.setSelectedItem(WrapperType.NONE.toString());
+            cb_embedded.setSelectedItem(EmbeddedType.NONE.toString());
+            cb_hybrid.setSelectedItem(HybridType.NONE.toString());
+            if (filterType == FilterType.LAPLACIAN_SCORE) {
                 LaplacianScorePanel lapScorePanel = new LaplacianScorePanel();
                 lapScorePanel.setDefaultValue();
                 KNearest = lapScorePanel.getKNearest();
@@ -1212,7 +1587,7 @@ public class MainPanel extends JPanel {
                 btn_moreOpFilter.setEnabled(true);
 //                System.out.println("default:   k-NN = " + KNearest
 //                        + "   constParam = " + constParam);
-            } else if (cb_unsupervised.getSelectedItem().equals("Random subspace method (RSM)")) {
+            } else if (filterType == FilterType.RSM) {
                 RSMPanel rsmPanel = new RSMPanel();
                 rsmPanel.setDefaultValue();
                 numSelection = rsmPanel.getNumSelection();
@@ -1224,13 +1599,13 @@ public class MainPanel extends JPanel {
 //                        + "   sizeSubspace = " + sizeSubspace
 //                        + "   elimination = " + elimination
 //                        + "    multMethodName = " + multMethodName);
-            } else if (cb_unsupervised.getSelectedItem().equals("Relevance-redundancy feature selection (RRFS)")) {
+            } else if (filterType == FilterType.RRFS) {
                 RRFSPanel rrfsPanel = new RRFSPanel();
                 rrfsPanel.setDefaultValue();
                 simValue = rrfsPanel.getSimilarity();
                 btn_moreOpFilter.setEnabled(true);
 //                System.out.println("default:   simValue = " + simValue);
-            } else if (cb_unsupervised.getSelectedItem().equals("UFSACO")) {
+            } else if (filterType == FilterType.UFSACO) {
                 UFSACOPanel ufsacoPanel = new UFSACOPanel();
                 ufsacoPanel.setDefaultValue();
                 initPheromone = ufsacoPanel.getInitPheromone();
@@ -1248,7 +1623,7 @@ public class MainPanel extends JPanel {
 //                        + "   evRate = " + evRate
 //                        + "   beta = " + beta
 //                        + "   q0 = " + q0);
-            } else if (cb_unsupervised.getSelectedItem().equals("RRFSACO_1")) {
+            } else if (filterType == FilterType.RRFSACO_1) {
                 RRFSACO_1Panel rrfsacoPanel = new RRFSACO_1Panel();
                 rrfsacoPanel.setDefaultValue();
                 numIteration = rrfsacoPanel.getNumIteration();
@@ -1264,7 +1639,7 @@ public class MainPanel extends JPanel {
 //                        + "   evRate = " + evRate
 //                        + "   beta = " + beta
 //                        + "   q0 = " + q0);
-            } else if (cb_unsupervised.getSelectedItem().equals("RRFSACO_2")) {
+            } else if (filterType == FilterType.RRFSACO_2) {
                 RRFSACO_2Panel rrfsacoPanel = new RRFSACO_2Panel();
                 rrfsacoPanel.setDefaultValue();
                 initPheromone = rrfsacoPanel.getInitPheromone();
@@ -1284,7 +1659,7 @@ public class MainPanel extends JPanel {
 //                        + "   alpha = " + alpha
 //                        + "   beta = " + beta
 //                        + "   q0 = " + q0);
-            } else if (cb_unsupervised.getSelectedItem().equals("IRRFSACO_1")) {
+            } else if (filterType == FilterType.IRRFSACO_1) {
                 IRRFSACO_1Panel irrfsacoPanel = new IRRFSACO_1Panel();
                 irrfsacoPanel.setDefaultValue();
                 numIteration = irrfsacoPanel.getNumIteration();
@@ -1300,7 +1675,7 @@ public class MainPanel extends JPanel {
 //                        + "   evRate = " + evRate
 //                        + "   beta = " + beta
 //                        + "   q0 = " + q0);
-            } else if (cb_unsupervised.getSelectedItem().equals("IRRFSACO_2")) {
+            } else if (filterType == FilterType.IRRFSACO_2) {
                 IRRFSACO_2Panel irrfsacoPanel = new IRRFSACO_2Panel();
                 irrfsacoPanel.setDefaultValue();
                 initPheromone = irrfsacoPanel.getInitPheromone();
@@ -1320,7 +1695,7 @@ public class MainPanel extends JPanel {
 //                        + "   alpha = " + alpha
 //                        + "   beta = " + beta
 //                        + "   q0 = " + q0);
-            } else if (cb_unsupervised.getSelectedItem().equals("MGSACO")) {
+            } else if (filterType == FilterType.MGSACO) {
                 MGSACOPanel mgsacoPanel = new MGSACOPanel();
                 mgsacoPanel.setDefaultValue();
                 initPheromone = mgsacoPanel.getInitPheromone();
@@ -1350,16 +1725,218 @@ public class MainPanel extends JPanel {
      * @param e an action event
      */
     private void cb_wrapperItemStateChanged(ItemEvent e) {
-        if (!cb_wrapper.getSelectedItem().equals("none")) {
-            cb_supervised.setSelectedItem("none");
-            cb_unsupervised.setSelectedItem("none");
-            cb_embedded.setSelectedItem("none");
-            cb_hybrid.setSelectedItem("none");
-//            if (cb_wrapper.getSelectedItem().equals("name methods")) {
-//                btn_moreOpWrapper.setEnabled(true);
-//            } else {
-//                btn_moreOpWrapper.setEnabled(false);
-//            }
+        WrapperType wrapperType = WrapperType.parse(cb_wrapper.getSelectedItem().toString());
+        if (wrapperType != WrapperType.NONE) {
+            cb_supervised.setSelectedItem(FilterType.NONE.toString());
+            cb_unsupervised.setSelectedItem(FilterType.NONE.toString());
+            cb_embedded.setSelectedItem(EmbeddedType.NONE.toString());
+            cb_hybrid.setSelectedItem(HybridType.NONE.toString());
+            if (wrapperType == WrapperType.BPSO) {
+                BPSOPanel bpsoPanel = new BPSOPanel();
+                bpsoPanel.setDefaultValue();
+                bpsoFeatSelectionPanel = bpsoPanel;
+                btn_moreOpWrapper.setEnabled(true);
+//                System.out.println("classifier type = " + bpsoFeatSelectionPanel.getClassifierType().toString());
+//                if (bpsoFeatSelectionPanel.getClassifierType() == ClassifierType.SVM) {
+//                    SVMClassifierPanel pan = (SVMClassifierPanel) bpsoFeatSelectionPanel.getSelectedClassifierPan();
+//                    System.out.println("default:   kernel = " + pan.getKernel().toString()
+//                            + "   C = " + pan.getParameterC());
+//                } else if (bpsoFeatSelectionPanel.getClassifierType() == ClassifierType.DT) {
+//                    DTClassifierPanel pan = (DTClassifierPanel) bpsoFeatSelectionPanel.getSelectedClassifierPan();
+//                    System.out.println("default:    min num = " + pan.getMinNum()
+//                            + "  confidence = " + pan.getConfidence());
+//                } else if (bpsoFeatSelectionPanel.getClassifierType() == ClassifierType.KNN) {
+//                    KNNClassifierPanel pan = (KNNClassifierPanel) bpsoFeatSelectionPanel.getSelectedClassifierPan();
+//                    System.out.println("default:    KNN Value = " + pan.getKNNValue());
+//                }
+//                System.out.println("default:    num iteration = " + bpsoFeatSelectionPanel.getNumIteration());
+//                System.out.println("population size = " + bpsoFeatSelectionPanel.getPopulationSize());
+//                System.out.println("inertia weight = " + bpsoFeatSelectionPanel.getInertiaWeight());
+//                System.out.println("c1 = " + bpsoFeatSelectionPanel.getC1());
+//                System.out.println("c2 = " + bpsoFeatSelectionPanel.getC2());
+//                System.out.println("start position = " + bpsoFeatSelectionPanel.getStartPosInterval());
+//                System.out.println("end position = " + bpsoFeatSelectionPanel.getEndPosInterval());
+//                System.out.println("min velocity = " + bpsoFeatSelectionPanel.getMinVelocity());
+//                System.out.println("max velocity = " + bpsoFeatSelectionPanel.getMaxVelocity());
+//                System.out.println("K fold = " + bpsoFeatSelectionPanel.getKFolds());
+            } else if (wrapperType == WrapperType.CPSO) {
+                CPSOPanel cpsoPanel = new CPSOPanel();
+                cpsoPanel.setDefaultValue();
+                cpsoFeatSelectionPanel = cpsoPanel;
+                btn_moreOpWrapper.setEnabled(true);
+//                System.out.println("classifier type = " + cpsoFeatSelectionPanel.getClassifierType().toString());
+//                if (cpsoFeatSelectionPanel.getClassifierType() == ClassifierType.SVM) {
+//                    SVMClassifierPanel pan = (SVMClassifierPanel) cpsoFeatSelectionPanel.getSelectedClassifierPan();
+//                    System.out.println("default:   kernel = " + pan.getKernel().toString()
+//                            + "   C = " + pan.getParameterC());
+//                } else if (cpsoFeatSelectionPanel.getClassifierType() == ClassifierType.DT) {
+//                    DTClassifierPanel pan = (DTClassifierPanel) cpsoFeatSelectionPanel.getSelectedClassifierPan();
+//                    System.out.println("default:    min num = " + pan.getMinNum()
+//                            + "  confidence = " + pan.getConfidence());
+//                } else if (cpsoFeatSelectionPanel.getClassifierType() == ClassifierType.KNN) {
+//                    KNNClassifierPanel pan = (KNNClassifierPanel) cpsoFeatSelectionPanel.getSelectedClassifierPan();
+//                    System.out.println("default:    KNN Value = " + pan.getKNNValue());
+//                }
+//                System.out.println("default:   num iteration = " + cpsoFeatSelectionPanel.getNumIteration());
+//                System.out.println("population size = " + cpsoFeatSelectionPanel.getPopulationSize());
+//                System.out.println("inertia weight = " + cpsoFeatSelectionPanel.getInertiaWeight());
+//                System.out.println("c1 = " + cpsoFeatSelectionPanel.getC1());
+//                System.out.println("c2 = " + cpsoFeatSelectionPanel.getC2());
+//                System.out.println("start position = " + cpsoFeatSelectionPanel.getStartPosInterval());
+//                System.out.println("end position = " + cpsoFeatSelectionPanel.getEndPosInterval());
+//                System.out.println("min velocity = " + cpsoFeatSelectionPanel.getMinVelocity());
+//                System.out.println("max velocity = " + cpsoFeatSelectionPanel.getMaxVelocity());
+//                System.out.println("K fold = " + cpsoFeatSelectionPanel.getKFolds());
+//                System.out.println("theta = " + cpsoFeatSelectionPanel.getTheta());
+            } else if (wrapperType == WrapperType.PSO42) {
+                PSO42Panel pso42Panel = new PSO42Panel();
+                pso42Panel.setDefaultValue();
+                pso42FeatSelectionPanel = pso42Panel;
+                btn_moreOpWrapper.setEnabled(true);
+//                System.out.println("classifier type = " + pso42FeatSelectionPanel.getClassifierType().toString());
+//                if (pso42FeatSelectionPanel.getClassifierType() == ClassifierType.SVM) {
+//                    SVMClassifierPanel pan = (SVMClassifierPanel) pso42FeatSelectionPanel.getSelectedClassifierPan();
+//                    System.out.println("default:   kernel = " + pan.getKernel().toString()
+//                            + "   C = " + pan.getParameterC());
+//                } else if (pso42FeatSelectionPanel.getClassifierType() == ClassifierType.DT) {
+//                    DTClassifierPanel pan = (DTClassifierPanel) pso42FeatSelectionPanel.getSelectedClassifierPan();
+//                    System.out.println("default:    min num = " + pan.getMinNum()
+//                            + "  confidence = " + pan.getConfidence());
+//                } else if (pso42FeatSelectionPanel.getClassifierType() == ClassifierType.KNN) {
+//                    KNNClassifierPanel pan = (KNNClassifierPanel) pso42FeatSelectionPanel.getSelectedClassifierPan();
+//                    System.out.println("default:    KNN Value = " + pan.getKNNValue());
+//                }
+//                System.out.println("default:   num iteration = " + pso42FeatSelectionPanel.getNumIteration());
+//                System.out.println("population size = " + pso42FeatSelectionPanel.getPopulationSize());
+//                System.out.println("inertia weight = " + pso42FeatSelectionPanel.getInertiaWeight());
+//                System.out.println("c1 = " + pso42FeatSelectionPanel.getC1());
+//                System.out.println("c2 = " + pso42FeatSelectionPanel.getC2());
+//                System.out.println("start position = " + pso42FeatSelectionPanel.getStartPosInterval());
+//                System.out.println("end position = " + pso42FeatSelectionPanel.getEndPosInterval());
+//                System.out.println("min velocity = " + pso42FeatSelectionPanel.getMinVelocity());
+//                System.out.println("max velocity = " + pso42FeatSelectionPanel.getMaxVelocity());
+//                System.out.println("K fold = " + pso42FeatSelectionPanel.getKFolds());
+//                System.out.println("theta = " + pso42FeatSelectionPanel.getTheta());
+            } else if (wrapperType == WrapperType.HPSO_LS) {
+                HPSO_LSPanel hpsolsPanel = new HPSO_LSPanel();
+                hpsolsPanel.setDefaultValue();
+                hpsolsFeatSelectionPanel = hpsolsPanel;
+                btn_moreOpWrapper.setEnabled(true);
+//                System.out.println("classifier type = " + hpsolsFeatSelectionPanel.getClassifierType().toString());
+//                if (hpsolsFeatSelectionPanel.getClassifierType() == ClassifierType.SVM) {
+//                    SVMClassifierPanel pan = (SVMClassifierPanel) hpsolsFeatSelectionPanel.getSelectedClassifierPan();
+//                    System.out.println("default:   kernel = " + pan.getKernel().toString()
+//                            + "   C = " + pan.getParameterC());
+//                } else if (hpsolsFeatSelectionPanel.getClassifierType() == ClassifierType.DT) {
+//                    DTClassifierPanel pan = (DTClassifierPanel) hpsolsFeatSelectionPanel.getSelectedClassifierPan();
+//                    System.out.println("default:    min num = " + pan.getMinNum()
+//                            + "  confidence = " + pan.getConfidence());
+//                } else if (hpsolsFeatSelectionPanel.getClassifierType() == ClassifierType.KNN) {
+//                    KNNClassifierPanel pan = (KNNClassifierPanel) hpsolsFeatSelectionPanel.getSelectedClassifierPan();
+//                    System.out.println("default:    KNN Value = " + pan.getKNNValue());
+//                }
+//                System.out.println("default:   num iteration = " + hpsolsFeatSelectionPanel.getNumIteration());
+//                System.out.println("population size = " + hpsolsFeatSelectionPanel.getPopulationSize());
+//                System.out.println("inertia weight = " + hpsolsFeatSelectionPanel.getInertiaWeight());
+//                System.out.println("c1 = " + hpsolsFeatSelectionPanel.getC1());
+//                System.out.println("c2 = " + hpsolsFeatSelectionPanel.getC2());
+//                System.out.println("start position = " + hpsolsFeatSelectionPanel.getStartPosInterval());
+//                System.out.println("end position = " + hpsolsFeatSelectionPanel.getEndPosInterval());
+//                System.out.println("min velocity = " + hpsolsFeatSelectionPanel.getMinVelocity());
+//                System.out.println("max velocity = " + hpsolsFeatSelectionPanel.getMaxVelocity());
+//                System.out.println("K fold = " + hpsolsFeatSelectionPanel.getKFolds());
+//                System.out.println("epsilon = " + hpsolsFeatSelectionPanel.getEpsilon());
+//                System.out.println("alpha = " + hpsolsFeatSelectionPanel.getAlpha());
+            } else if (wrapperType == WrapperType.SIMPLE_GA) {
+                SimpleGAPanel simpleGAPanel = new SimpleGAPanel();
+                simpleGAPanel.setDefaultValue();
+                simpleGAFeatSelectionPanel = simpleGAPanel;
+                btn_moreOpWrapper.setEnabled(true);
+
+//                System.out.println("classifier type = " + simpleGAFeatSelectionPanel.getClassifierType().toString());
+//                if (simpleGAFeatSelectionPanel.getClassifierType() == ClassifierType.SVM) {
+//                    SVMClassifierPanel pan = (SVMClassifierPanel) simpleGAFeatSelectionPanel.getSelectedClassifierPan();
+//                    System.out.println("default:   kernel = " + pan.getKernel().toString()
+//                            + "   C = " + pan.getParameterC());
+//                } else if (simpleGAFeatSelectionPanel.getClassifierType() == ClassifierType.DT) {
+//                    DTClassifierPanel pan = (DTClassifierPanel) simpleGAFeatSelectionPanel.getSelectedClassifierPan();
+//                    System.out.println("default:    min num = " + pan.getMinNum()
+//                            + "  confidence = " + pan.getConfidence());
+//                } else if (simpleGAFeatSelectionPanel.getClassifierType() == ClassifierType.KNN) {
+//                    KNNClassifierPanel pan = (KNNClassifierPanel) simpleGAFeatSelectionPanel.getSelectedClassifierPan();
+//                    System.out.println("default:    KNN Value = " + pan.getKNNValue());
+//                }
+//                System.out.println("selection type = " + simpleGAFeatSelectionPanel.getSelectionType().toString());
+//                System.out.println("crossover type = " + simpleGAFeatSelectionPanel.getCrossOverType().toString());
+//                System.out.println("mutation type = " + simpleGAFeatSelectionPanel.getMutationType().toString());
+//                System.out.println("replacement type = " + simpleGAFeatSelectionPanel.getReplacementType().toString());
+//                System.out.println("num iteration = " + simpleGAFeatSelectionPanel.getNumIteration());
+//                System.out.println("population size = " + simpleGAFeatSelectionPanel.getPopulationSize());
+//                System.out.println("crossover rate = " + simpleGAFeatSelectionPanel.getCrossoverRate());
+//                System.out.println("mutation rate = " + simpleGAFeatSelectionPanel.getMutationRate());
+//                System.out.println("K fold = " + simpleGAFeatSelectionPanel.getKFolds());
+            } else if (wrapperType == WrapperType.HGAFS) {
+                HGAFSPanel hgafsPanel = new HGAFSPanel();
+                hgafsPanel.setDefaultValue();
+                hgafsFeatSelectionPanel = hgafsPanel;
+                btn_moreOpWrapper.setEnabled(true);
+
+//                System.out.println("classifier type = " + hgafsFeatSelectionPanel.getClassifierType().toString());
+//                if (hgafsFeatSelectionPanel.getClassifierType() == ClassifierType.SVM) {
+//                    SVMClassifierPanel pan = (SVMClassifierPanel) hgafsFeatSelectionPanel.getSelectedClassifierPan();
+//                    System.out.println("default:   kernel = " + pan.getKernel().toString()
+//                            + "   C = " + pan.getParameterC());
+//                } else if (hgafsFeatSelectionPanel.getClassifierType() == ClassifierType.DT) {
+//                    DTClassifierPanel pan = (DTClassifierPanel) hgafsFeatSelectionPanel.getSelectedClassifierPan();
+//                    System.out.println("default:    min num = " + pan.getMinNum()
+//                            + "  confidence = " + pan.getConfidence());
+//                } else if (hgafsFeatSelectionPanel.getClassifierType() == ClassifierType.KNN) {
+//                    KNNClassifierPanel pan = (KNNClassifierPanel) hgafsFeatSelectionPanel.getSelectedClassifierPan();
+//                    System.out.println("default:    KNN Value = " + pan.getKNNValue());
+//                }
+//
+//                System.out.println("selection type = " + hgafsFeatSelectionPanel.getSelectionType().toString());
+//                System.out.println("crossover type = " + hgafsFeatSelectionPanel.getCrossOverType().toString());
+//                System.out.println("mutation type = " + hgafsFeatSelectionPanel.getMutationType().toString());
+//                System.out.println("replacement type = " + hgafsFeatSelectionPanel.getReplacementType().toString());
+//                System.out.println("num iteration = " + hgafsFeatSelectionPanel.getNumIteration());
+//                System.out.println("population size = " + hgafsFeatSelectionPanel.getPopulationSize());
+//                System.out.println("crossover rate = " + hgafsFeatSelectionPanel.getCrossoverRate());
+//                System.out.println("mutation rate = " + hgafsFeatSelectionPanel.getMutationRate());
+//                System.out.println("K fold = " + hgafsFeatSelectionPanel.getKFolds());
+//                System.out.println("epsilon = " + hgafsFeatSelectionPanel.getEpsilon());
+//                System.out.println("mu = " + hgafsFeatSelectionPanel.getMu());
+            } else if (wrapperType == WrapperType.OPTIMAL_ACO) {
+                OptimalACOPanel optimalacoPanel = new OptimalACOPanel();
+                optimalacoPanel.setDefaultValue();
+                optimalACOFeatSelectionPanel = optimalacoPanel;
+                btn_moreOpWrapper.setEnabled(true);
+
+//                System.out.println("classifier type = " + optimalACOFeatSelectionPanel.getClassifierType().toString());
+//                if (optimalACOFeatSelectionPanel.getClassifierType() == ClassifierType.SVM) {
+//                    SVMClassifierPanel pan = (SVMClassifierPanel) optimalACOFeatSelectionPanel.getSelectedClassifierPan();
+//                    System.out.println("default:   kernel = " + pan.getKernel().toString()
+//                            + "   C = " + pan.getParameterC());
+//                } else if (optimalACOFeatSelectionPanel.getClassifierType() == ClassifierType.DT) {
+//                    DTClassifierPanel pan = (DTClassifierPanel) optimalACOFeatSelectionPanel.getSelectedClassifierPan();
+//                    System.out.println("default:    min num = " + pan.getMinNum()
+//                            + "  confidence = " + pan.getConfidence());
+//                } else if (optimalACOFeatSelectionPanel.getClassifierType() == ClassifierType.KNN) {
+//                    KNNClassifierPanel pan = (KNNClassifierPanel) optimalACOFeatSelectionPanel.getSelectedClassifierPan();
+//                    System.out.println("default:    KNN Value = " + pan.getKNNValue());
+//                }
+//
+//                System.out.println("num iteration = " + optimalACOFeatSelectionPanel.getNumIteration());
+//                System.out.println("colony size = " + optimalACOFeatSelectionPanel.getColonySize());
+//                System.out.println("alpha = " + optimalACOFeatSelectionPanel.getAlpha());
+//                System.out.println("beta = " + optimalACOFeatSelectionPanel.getBeta());
+//                System.out.println("evRate = " + optimalACOFeatSelectionPanel.getEvRate());
+//                System.out.println("K fold = " + optimalACOFeatSelectionPanel.getKFolds());
+//                System.out.println("init pheromone = " + optimalACOFeatSelectionPanel.getInitPheromone());
+//                System.out.println("phi = " + optimalACOFeatSelectionPanel.getPhi());
+            } else {
+                btn_moreOpWrapper.setEnabled(false);
+            }
         } else {
             btn_moreOpWrapper.setEnabled(false);
         }
@@ -1371,16 +1948,55 @@ public class MainPanel extends JPanel {
      * @param e an action event
      */
     private void cb_embeddedItemStateChanged(ItemEvent e) {
-        if (!cb_embedded.getSelectedItem().equals("none")) {
-            cb_supervised.setSelectedItem("none");
-            cb_unsupervised.setSelectedItem("none");
-            cb_wrapper.setSelectedItem("none");
-            cb_hybrid.setSelectedItem("none");
-//            if (cb_embedded.getSelectedItem().equals("name methods")) {
-//                btn_moreOpEmbedded.setEnabled(true);
-//            } else {
-//                btn_moreOpEmbedded.setEnabled(false);
-//            }
+        EmbeddedType embeddedType = EmbeddedType.parse(cb_embedded.getSelectedItem().toString());
+        if (embeddedType != EmbeddedType.NONE) {
+            cb_supervised.setSelectedItem(FilterType.NONE.toString());
+            cb_unsupervised.setSelectedItem(FilterType.NONE.toString());
+            cb_wrapper.setSelectedItem(WrapperType.NONE.toString());
+            cb_hybrid.setSelectedItem(HybridType.NONE.toString());
+            if (embeddedType == EmbeddedType.DECISION_TREE_BASED) {
+                DecisionTreeBasedPanel dtBasedPanel = new DecisionTreeBasedPanel();
+                dtBasedPanel.setDefaultValue();
+                decisionTreeBasedMethodType = dtBasedPanel.getTreeType();
+                confidence = dtBasedPanel.getConfidence();
+                minNum = dtBasedPanel.getMinNum();
+                btn_moreOpEmbedded.setEnabled(true);
+//                System.out.println("default:   dtType = " + decisionTreeBasedMethodType.toString()
+//                        + "   confidence = " + confidence
+//                        + "   minNum = " + minNum);
+            } else if (embeddedType == EmbeddedType.RANDOM_FOREST_METHOD) {
+                DecisionTreeBasedPanel dtBasedPanel = new DecisionTreeBasedPanel();
+                dtBasedPanel.setDefaultValue(TreeType.RANDOM_FOREST);
+                decisionTreeBasedMethodType = dtBasedPanel.getTreeType();
+                randomForestNumFeatures = dtBasedPanel.getRandomForestNumFeatures();
+                maxDepth = dtBasedPanel.getMaxDepth();
+                randomForestNumIterations = dtBasedPanel.getRandomForestNumIterations();
+                btn_moreOpEmbedded.setEnabled(true);
+//                System.out.println("default...   " + decisionTreeBasedMethodType.toString()
+//                        + "   randomForestNumFeatures = " + randomForestNumFeatures
+//                        + "   maxDepth = " + maxDepth
+//                        + "   randomforestNumIterations = " + randomForestNumIterations);
+            } else if (embeddedType == EmbeddedType.MSVM_RFE) {
+                MSVM_RFEPanel msvmPanel = new MSVM_RFEPanel();
+                msvmPanel.setDefaultValue();
+                msvmFeatureSelectionPanel = msvmPanel;
+                btn_moreOpEmbedded.setEnabled(true);
+//                System.out.println("default:   kernel = " + msvmFeatureSelectionPanel.getKernel().toString()
+//                        + "   C = " + msvmFeatureSelectionPanel.getParameterC()
+//                        + "   Fold = " + msvmFeatureSelectionPanel.getNumFold()
+//                        + "   numRun = " + msvmFeatureSelectionPanel.getNumRun());
+            } else if (embeddedType == EmbeddedType.SVM_RFE
+                    || embeddedType == EmbeddedType.OVO_SVM_RFE
+                    || embeddedType == EmbeddedType.OVA_SVM_RFE) {
+                SVMClassifierPanel svmPanel = new SVMClassifierPanel();
+                svmPanel.setDefaultValue();
+                svmFeatureSelectionPanel = svmPanel;
+                btn_moreOpEmbedded.setEnabled(true);
+//                System.out.println("default:   kernel = " + svmFeatureSelectionPanel.getKernel().toString()
+//                        + "   C = " + svmFeatureSelectionPanel.getParameterC());
+            } else {
+                btn_moreOpEmbedded.setEnabled(false);
+            }
         } else {
             btn_moreOpEmbedded.setEnabled(false);
         }
@@ -1392,11 +2008,12 @@ public class MainPanel extends JPanel {
      * @param e an action event
      */
     private void cb_hybridItemStateChanged(ItemEvent e) {
-        if (!cb_hybrid.getSelectedItem().equals("none")) {
-            cb_supervised.setSelectedItem("none");
-            cb_unsupervised.setSelectedItem("none");
-            cb_wrapper.setSelectedItem("none");
-            cb_embedded.setSelectedItem("none");
+        HybridType hybridType = HybridType.parse(cb_hybrid.getSelectedItem().toString());
+        if (hybridType != HybridType.NONE) {
+            cb_supervised.setSelectedItem(FilterType.NONE.toString());
+            cb_unsupervised.setSelectedItem(FilterType.NONE.toString());
+            cb_wrapper.setSelectedItem(WrapperType.NONE.toString());
+            cb_embedded.setSelectedItem(EmbeddedType.NONE.toString());
 //            if (cb_hybrid.getSelectedItem().equals("name methods")) {
 //                btn_moreOpHybrid.setEnabled(true);
 //            } else {
@@ -1413,21 +2030,38 @@ public class MainPanel extends JPanel {
      * @param e an action event
      */
     private void cb_classifierItemStateChanged(ItemEvent e) {
-        if (cb_classifier.getSelectedItem().equals("Support Vector Machine (SVM)")) {
-            SVMClassifierPanel svmPanel = new SVMClassifierPanel();
-            svmPanel.setDefaultValue();
-            typeKernel = svmPanel.getKernel();
-            btn_moreOpClassifier.setEnabled(true);
-//            System.out.println("default:   kernel = " + typeKernel);
-        } else if (cb_classifier.getSelectedItem().equals("Decision Tree (C4.5)")) {
-            DTClassifierPanel dtPanel = new DTClassifierPanel();
-            dtPanel.setDefaultValue();
-            confidence = dtPanel.getConfidence();
-            minNum = dtPanel.getMinNum();
-            btn_moreOpClassifier.setEnabled(true);
-//            System.out.println("default:    min num = " + minNum + "  confidence = " + confidence);
-        } else {
-            btn_moreOpClassifier.setEnabled(false);
+        ClassifierType classifierType = ClassifierType.parse(cb_classifier.getSelectedItem().toString());
+        if (e.getStateChange() == ItemEvent.SELECTED) {
+            if (classifierType == ClassifierType.SVM) {
+                svmEvaluationPanel = new SVMClassifierPanel();
+                svmEvaluationPanel.setDefaultValue();
+                //typeKernel = svmEvaluationPanel.getKernel();
+                btn_moreOpClassifier.setEnabled(true);
+                selectedEvaluationClassifierPanel = svmEvaluationPanel;
+                //System.out.println("default:   kernel = " + typeKernel);
+//                System.out.println("default:   kernel = " + ((SVMClassifierPanel) selectedEvaluationClassifierPanel).getKernel().toString()
+//                        + "   C = " + ((SVMClassifierPanel) selectedEvaluationClassifierPanel).getParameterC());
+            } else if (classifierType == ClassifierType.DT) {
+                dtEvaluationPanel = new DTClassifierPanel();
+                dtEvaluationPanel.setDefaultValue();
+                //confidence = dtEvaluationPanel.getConfidence();
+                //minNum = dtEvaluationPanel.getMinNum();
+                btn_moreOpClassifier.setEnabled(true);
+                selectedEvaluationClassifierPanel = dtEvaluationPanel;
+                //System.out.println("default:    min num = " + minNum + "  confidence = " + confidence);
+//                System.out.println("default:    min num = " + ((DTClassifierPanel) selectedEvaluationClassifierPanel).getMinNum()
+//                        + "  confidence = " + ((DTClassifierPanel) selectedEvaluationClassifierPanel).getConfidence());
+            } else if (classifierType == ClassifierType.KNN) {
+                knnEvaluationPanel = new KNNClassifierPanel();
+                knnEvaluationPanel.setDefaultValue();
+                //confidence = knnEvaluationPanel.getKNNValue();
+                btn_moreOpClassifier.setEnabled(true);
+                selectedEvaluationClassifierPanel = knnEvaluationPanel;
+                //System.out.println("default:    KNN Value = " + minNum);
+//                System.out.println("default:    KNN Value = " + ((KNNClassifierPanel) selectedEvaluationClassifierPanel).getKNNValue());
+            } else {
+                btn_moreOpClassifier.setEnabled(false);
+            }
         }
     }
 
@@ -1440,939 +2074,21 @@ public class MainPanel extends JPanel {
     }
 
     /**
-     * This method performs the feature selection based on information gain
-     * method.
+     * This method returns a list of parameters that are applied in a given
+     * filter-based feature selection method
      *
-     * @see KurdFeast.featureSelection.filter.supervised.InformationGain
-     */
-    private void infoGainPerform() {
-        progressValue = 1;
-        repaint();
-        ResultPanel resPanel = new ResultPanel(pathProject);
-        //save initial information of the dataset
-        resPanel.setMessage(addTextToPanel());
-
-        int numRuns = Integer.parseInt(cb_start.getSelectedItem().toString());
-        accuracies = new double[numRuns][numSelectedSubsets.length];
-        times = new double[numRuns][numSelectedSubsets.length];
-        String[][] Results = new String[numRuns][numSelectedSubsets.length];
-        double totalValuesProgress = numRuns * numSelectedSubsets.length;
-
-        for (int i = 0; i < numRuns; i++) {
-            resPanel.setMessage("  Iteration (" + (i + 1) + "):\n");
-            for (int j = 0; j < numSelectedSubsets.length; j++) {
-                resPanel.setMessage("    " + numSelectedSubsets[j] + " feature selected:\n");
-                long startTime = System.currentTimeMillis();
-
-                InformationGain method = new InformationGain(numSelectedSubsets[j]);
-                method.loadDataSet(data);
-                method.evaluateFeatures();
-
-                long endTime = System.currentTimeMillis();
-                times[i][j] = (endTime - startTime) / 1000.0;
-
-                int[] subset = method.getSelectedFeatureSubset();
-                double[] computeValues = method.getValues();
-                //shows new results in the panel of results
-                resPanel.setMessage(addTextToPanel(computeValues, "information gain"));
-                resPanel.setMessage(addTextToPanel(subset));
-
-                Results[i][j] = data.createFeatNames(subset);
-
-                String nameTrainDataCSV = pathDataCSV + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                String nameTrainDataARFF = pathDataARFF + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-                String nameTestDataCSV = pathDataCSV + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                String nameTestDataARFF = pathDataARFF + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-
-                data.createCSVFile(data.getTrainSet(), subset, nameTrainDataCSV);
-                data.createCSVFile(data.getTestSet(), subset, nameTestDataCSV);
-                arff.convertCSVtoARFF(nameTrainDataCSV, nameTrainDataARFF, pathProject, subset.length, data);
-                arff.convertCSVtoARFF(nameTestDataCSV, nameTestDataARFF, pathProject, subset.length, data);
-
-                if (cb_classifier.getSelectedItem().equals("Support Vector Machine (SVM)")) {
-                    accuracies[i][j] = WekaClassifier.SVM(nameTrainDataARFF, nameTestDataARFF, typeKernel);
-                } else if (cb_classifier.getSelectedItem().equals("Naive Bayes (NB)")) {
-                    accuracies[i][j] = WekaClassifier.naiveBayes(nameTrainDataARFF, nameTestDataARFF);
-                } else if (cb_classifier.getSelectedItem().equals("Decision Tree (C4.5)")) {
-                    accuracies[i][j] = WekaClassifier.dTree(nameTrainDataARFF, nameTestDataARFF, confidence, minNum);
-                }
-
-                //updates the value of progress bar
-                progressValue = (int) ((upProgValue(numSelectedSubsets.length, i, j) / totalValuesProgress) * 100);
-                repaint();
-            }
-            //randomly splits the datasets
-            if (rd_randSet.isSelected()) {
-                data.preProcessing(txt_inputdst.getText(), txt_classLbl.getText());
-            }
-        }
-        createFeatureFiles(Results, pathProject);
-        errorRates = MathFunc.computeErrorRate(accuracies);
-        averageAccuracies = MathFunc.computeAverageArray(accuracies);
-        averageErrorRates = MathFunc.computeErrorRate(averageAccuracies);
-        averageTimes = MathFunc.computeAverageArray(times);
-
-        //show the result values in the panel of result
-        resPanel.setMessage(addTextToPanel(Results, "Subsets of selected features in each iteration"));
-        resPanel.setMessage(addTextToPanel(accuracies, "Classification accuracies"));
-        resPanel.setMessage(addTextToPanel(averageAccuracies, "Average classification accuracies", true));
-        resPanel.setMessage(addTextToPanel(times, "Execution times"));
-        resPanel.setMessage(addTextToPanel(averageTimes, "Average execution times", true));
-        resPanel.setEnabledButton();
-        setEnabledItem();
-    }
-
-    /**
-     * This method performs the feature selection based on gain ratio method.
+     * @param type type of the feature selection method
+     * @param sizeSelectedFeatureSubset the number of selected features
      *
-     * @see KurdFeast.featureSelection.filter.supervised.GainRatio
+     * @return a list of parameters
      */
-    private void gainRatioPerform() {
-        progressValue = 1;
-        repaint();
-        ResultPanel resPanel = new ResultPanel(pathProject);
-        //save initial information of the dataset
-        resPanel.setMessage(addTextToPanel());
-
-        int numRuns = Integer.parseInt(cb_start.getSelectedItem().toString());
-        accuracies = new double[numRuns][numSelectedSubsets.length];
-        times = new double[numRuns][numSelectedSubsets.length];
-        String[][] Results = new String[numRuns][numSelectedSubsets.length];
-        double totalValuesProgress = numRuns * numSelectedSubsets.length;
-
-        for (int i = 0; i < numRuns; i++) {
-            resPanel.setMessage("  Iteration (" + (i + 1) + "):\n");
-            for (int j = 0; j < numSelectedSubsets.length; j++) {
-                resPanel.setMessage("    " + numSelectedSubsets[j] + " feature selected:\n");
-                long startTime = System.currentTimeMillis();
-
-                GainRatio method = new GainRatio(numSelectedSubsets[j]);
-                method.loadDataSet(data);
-                method.evaluateFeatures();
-
-                long endTime = System.currentTimeMillis();
-                times[i][j] = (endTime - startTime) / 1000.0;
-
-                int[] subset = method.getSelectedFeatureSubset();
-                double[] computeValues = method.getValues();
-                //shows new results in the panel of results
-                resPanel.setMessage(addTextToPanel(computeValues, "gain ratio"));
-                resPanel.setMessage(addTextToPanel(subset));
-
-                Results[i][j] = data.createFeatNames(subset);
-
-                String nameTrainDataCSV = pathDataCSV + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                String nameTrainDataARFF = pathDataARFF + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-                String nameTestDataCSV = pathDataCSV + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                String nameTestDataARFF = pathDataARFF + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-
-                data.createCSVFile(data.getTrainSet(), subset, nameTrainDataCSV);
-                data.createCSVFile(data.getTestSet(), subset, nameTestDataCSV);
-                arff.convertCSVtoARFF(nameTrainDataCSV, nameTrainDataARFF, pathProject, subset.length, data);
-                arff.convertCSVtoARFF(nameTestDataCSV, nameTestDataARFF, pathProject, subset.length, data);
-
-                if (cb_classifier.getSelectedItem().equals("Support Vector Machine (SVM)")) {
-                    accuracies[i][j] = WekaClassifier.SVM(nameTrainDataARFF, nameTestDataARFF, typeKernel);
-                } else if (cb_classifier.getSelectedItem().equals("Naive Bayes (NB)")) {
-                    accuracies[i][j] = WekaClassifier.naiveBayes(nameTrainDataARFF, nameTestDataARFF);
-                } else if (cb_classifier.getSelectedItem().equals("Decision Tree (C4.5)")) {
-                    accuracies[i][j] = WekaClassifier.dTree(nameTrainDataARFF, nameTestDataARFF, confidence, minNum);
-                }
-
-                //updates the value of progress bar
-                progressValue = (int) ((upProgValue(numSelectedSubsets.length, i, j) / totalValuesProgress) * 100);
-                repaint();
-            }
-            //randomly splits the datasets
-            if (rd_randSet.isSelected()) {
-                data.preProcessing(txt_inputdst.getText(), txt_classLbl.getText());
-            }
-        }
-        createFeatureFiles(Results, pathProject);
-        errorRates = MathFunc.computeErrorRate(accuracies);
-        averageAccuracies = MathFunc.computeAverageArray(accuracies);
-        averageErrorRates = MathFunc.computeErrorRate(averageAccuracies);
-        averageTimes = MathFunc.computeAverageArray(times);
-
-        //show the result values in the panel of result
-        resPanel.setMessage(addTextToPanel(Results, "Subsets of selected features in each iteration"));
-        resPanel.setMessage(addTextToPanel(accuracies, "Classification accuracies"));
-        resPanel.setMessage(addTextToPanel(averageAccuracies, "Average classification accuracies", true));
-        resPanel.setMessage(addTextToPanel(times, "Execution times"));
-        resPanel.setMessage(addTextToPanel(averageTimes, "Average execution times", true));
-        resPanel.setEnabledButton();
-        setEnabledItem();
-    }
-
-    /**
-     * This method performs the feature selection based on symmetrical
-     * uncertainty method.
-     *
-     * @see KurdFeast.featureSelection.filter.supervised.SymmetricalUncertainty
-     */
-    private void symmetricalUncertaintyPerform() {
-        progressValue = 1;
-        repaint();
-        ResultPanel resPanel = new ResultPanel(pathProject);
-        //save initial information of the dataset
-        resPanel.setMessage(addTextToPanel());
-
-        int numRuns = Integer.parseInt(cb_start.getSelectedItem().toString());
-        accuracies = new double[numRuns][numSelectedSubsets.length];
-        times = new double[numRuns][numSelectedSubsets.length];
-        String[][] Results = new String[numRuns][numSelectedSubsets.length];
-        double totalValuesProgress = numRuns * numSelectedSubsets.length;
-
-        for (int i = 0; i < numRuns; i++) {
-            resPanel.setMessage("  Iteration (" + (i + 1) + "):\n");
-            for (int j = 0; j < numSelectedSubsets.length; j++) {
-                resPanel.setMessage("    " + numSelectedSubsets[j] + " feature selected:\n");
-                long startTime = System.currentTimeMillis();
-
-                SymmetricalUncertainty method = new SymmetricalUncertainty(numSelectedSubsets[j]);
-                method.loadDataSet(data);
-                method.evaluateFeatures();
-
-                long endTime = System.currentTimeMillis();
-                times[i][j] = (endTime - startTime) / 1000.0;
-
-                int[] subset = method.getSelectedFeatureSubset();
-                double[] computeValues = method.getValues();
-                //shows new results in the panel of results
-                resPanel.setMessage(addTextToPanel(computeValues, "symmetrical uncertainty"));
-                resPanel.setMessage(addTextToPanel(subset));
-
-                Results[i][j] = data.createFeatNames(subset);
-
-                String nameTrainDataCSV = pathDataCSV + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                String nameTrainDataARFF = pathDataARFF + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-                String nameTestDataCSV = pathDataCSV + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                String nameTestDataARFF = pathDataARFF + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-
-                data.createCSVFile(data.getTrainSet(), subset, nameTrainDataCSV);
-                data.createCSVFile(data.getTestSet(), subset, nameTestDataCSV);
-                arff.convertCSVtoARFF(nameTrainDataCSV, nameTrainDataARFF, pathProject, subset.length, data);
-                arff.convertCSVtoARFF(nameTestDataCSV, nameTestDataARFF, pathProject, subset.length, data);
-
-                if (cb_classifier.getSelectedItem().equals("Support Vector Machine (SVM)")) {
-                    accuracies[i][j] = WekaClassifier.SVM(nameTrainDataARFF, nameTestDataARFF, typeKernel);
-                } else if (cb_classifier.getSelectedItem().equals("Naive Bayes (NB)")) {
-                    accuracies[i][j] = WekaClassifier.naiveBayes(nameTrainDataARFF, nameTestDataARFF);
-                } else if (cb_classifier.getSelectedItem().equals("Decision Tree (C4.5)")) {
-                    accuracies[i][j] = WekaClassifier.dTree(nameTrainDataARFF, nameTestDataARFF, confidence, minNum);
-                }
-
-                //updates the value of progress bar
-                progressValue = (int) ((upProgValue(numSelectedSubsets.length, i, j) / totalValuesProgress) * 100);
-                repaint();
-            }
-            //randomly splits the datasets
-            if (rd_randSet.isSelected()) {
-                data.preProcessing(txt_inputdst.getText(), txt_classLbl.getText());
-            }
-        }
-        createFeatureFiles(Results, pathProject);
-        errorRates = MathFunc.computeErrorRate(accuracies);
-        averageAccuracies = MathFunc.computeAverageArray(accuracies);
-        averageErrorRates = MathFunc.computeErrorRate(averageAccuracies);
-        averageTimes = MathFunc.computeAverageArray(times);
-
-        //show the result values in the panel of result
-        resPanel.setMessage(addTextToPanel(Results, "Subsets of selected features in each iteration"));
-        resPanel.setMessage(addTextToPanel(accuracies, "Classification accuracies"));
-        resPanel.setMessage(addTextToPanel(averageAccuracies, "Average classification accuracies", true));
-        resPanel.setMessage(addTextToPanel(times, "Execution times"));
-        resPanel.setMessage(addTextToPanel(averageTimes, "Average execution times", true));
-        resPanel.setEnabledButton();
-        setEnabledItem();
-    }
-
-    /**
-     * This method performs the feature selection based on Fisher score method.
-     *
-     * @see KurdFeast.featureSelection.filter.supervised.FisherScore
-     */
-    private void fisherScorePerform() {
-        progressValue = 1;
-        repaint();
-        ResultPanel resPanel = new ResultPanel(pathProject);
-        //save initial information of the dataset
-        resPanel.setMessage(addTextToPanel());
-
-        int numRuns = Integer.parseInt(cb_start.getSelectedItem().toString());
-        accuracies = new double[numRuns][numSelectedSubsets.length];
-        times = new double[numRuns][numSelectedSubsets.length];
-        String[][] Results = new String[numRuns][numSelectedSubsets.length];
-        double totalValuesProgress = numRuns * numSelectedSubsets.length;
-
-        for (int i = 0; i < numRuns; i++) {
-            resPanel.setMessage("  Iteration (" + (i + 1) + "):\n");
-            for (int j = 0; j < numSelectedSubsets.length; j++) {
-                resPanel.setMessage("    " + numSelectedSubsets[j] + " feature selected:\n");
-                long startTime = System.currentTimeMillis();
-
-                FisherScore method = new FisherScore(numSelectedSubsets[j]);
-                method.loadDataSet(data);
-                method.evaluateFeatures();
-
-                long endTime = System.currentTimeMillis();
-                times[i][j] = (endTime - startTime) / 1000.0;
-
-                int[] subset = method.getSelectedFeatureSubset();
-                double[] computeValues = method.getValues();
-                //shows new results in the panel of results
-                resPanel.setMessage(addTextToPanel(computeValues, "Fisher score"));
-                resPanel.setMessage(addTextToPanel(subset));
-
-                Results[i][j] = data.createFeatNames(subset);
-
-                String nameTrainDataCSV = pathDataCSV + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                String nameTrainDataARFF = pathDataARFF + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-                String nameTestDataCSV = pathDataCSV + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                String nameTestDataARFF = pathDataARFF + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-
-                data.createCSVFile(data.getTrainSet(), subset, nameTrainDataCSV);
-                data.createCSVFile(data.getTestSet(), subset, nameTestDataCSV);
-                arff.convertCSVtoARFF(nameTrainDataCSV, nameTrainDataARFF, pathProject, subset.length, data);
-                arff.convertCSVtoARFF(nameTestDataCSV, nameTestDataARFF, pathProject, subset.length, data);
-
-                if (cb_classifier.getSelectedItem().equals("Support Vector Machine (SVM)")) {
-                    accuracies[i][j] = WekaClassifier.SVM(nameTrainDataARFF, nameTestDataARFF, typeKernel);
-                } else if (cb_classifier.getSelectedItem().equals("Naive Bayes (NB)")) {
-                    accuracies[i][j] = WekaClassifier.naiveBayes(nameTrainDataARFF, nameTestDataARFF);
-                } else if (cb_classifier.getSelectedItem().equals("Decision Tree (C4.5)")) {
-                    accuracies[i][j] = WekaClassifier.dTree(nameTrainDataARFF, nameTestDataARFF, confidence, minNum);
-                }
-
-                //updates the value of progress bar
-                progressValue = (int) ((upProgValue(numSelectedSubsets.length, i, j) / totalValuesProgress) * 100);
-                repaint();
-            }
-            //randomly splits the datasets
-            if (rd_randSet.isSelected()) {
-                data.preProcessing(txt_inputdst.getText(), txt_classLbl.getText());
-            }
-        }
-        createFeatureFiles(Results, pathProject);
-        errorRates = MathFunc.computeErrorRate(accuracies);
-        averageAccuracies = MathFunc.computeAverageArray(accuracies);
-        averageErrorRates = MathFunc.computeErrorRate(averageAccuracies);
-        averageTimes = MathFunc.computeAverageArray(times);
-
-        //show the result values in the panel of result
-        resPanel.setMessage(addTextToPanel(Results, "Subsets of selected features in each iteration"));
-        resPanel.setMessage(addTextToPanel(accuracies, "Classification accuracies"));
-        resPanel.setMessage(addTextToPanel(averageAccuracies, "Average classification accuracies", true));
-        resPanel.setMessage(addTextToPanel(times, "Execution times"));
-        resPanel.setMessage(addTextToPanel(averageTimes, "Average execution times", true));
-        resPanel.setEnabledButton();
-        setEnabledItem();
-    }
-
-    /**
-     * This method performs the feature selection based on gini index method.
-     *
-     * @see KurdFeast.featureSelection.filter.supervised.GiniIndex
-     */
-    private void giniIndexPerform() {
-        progressValue = 1;
-        repaint();
-        ResultPanel resPanel = new ResultPanel(pathProject);
-        //save initial information of the dataset
-        resPanel.setMessage(addTextToPanel());
-
-        int numRuns = Integer.parseInt(cb_start.getSelectedItem().toString());
-        accuracies = new double[numRuns][numSelectedSubsets.length];
-        times = new double[numRuns][numSelectedSubsets.length];
-        String[][] Results = new String[numRuns][numSelectedSubsets.length];
-        double totalValuesProgress = numRuns * numSelectedSubsets.length;
-
-        for (int i = 0; i < numRuns; i++) {
-            resPanel.setMessage("  Iteration (" + (i + 1) + "):\n");
-            for (int j = 0; j < numSelectedSubsets.length; j++) {
-                resPanel.setMessage("    " + numSelectedSubsets[j] + " feature selected:\n");
-                long startTime = System.currentTimeMillis();
-
-                GiniIndex method = new GiniIndex(numSelectedSubsets[j]);
-                method.loadDataSet(data);
-                method.evaluateFeatures();
-
-                long endTime = System.currentTimeMillis();
-                times[i][j] = (endTime - startTime) / 1000.0;
-
-                int[] subset = method.getSelectedFeatureSubset();
-                double[] computeValues = method.getValues();
-                //shows new results in the panel of results
-                resPanel.setMessage(addTextToPanel(computeValues, "gini index"));
-                resPanel.setMessage(addTextToPanel(subset));
-
-                Results[i][j] = data.createFeatNames(subset);
-
-                String nameTrainDataCSV = pathDataCSV + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                String nameTrainDataARFF = pathDataARFF + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-                String nameTestDataCSV = pathDataCSV + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                String nameTestDataARFF = pathDataARFF + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-
-                data.createCSVFile(data.getTrainSet(), subset, nameTrainDataCSV);
-                data.createCSVFile(data.getTestSet(), subset, nameTestDataCSV);
-                arff.convertCSVtoARFF(nameTrainDataCSV, nameTrainDataARFF, pathProject, subset.length, data);
-                arff.convertCSVtoARFF(nameTestDataCSV, nameTestDataARFF, pathProject, subset.length, data);
-
-                if (cb_classifier.getSelectedItem().equals("Support Vector Machine (SVM)")) {
-                    accuracies[i][j] = WekaClassifier.SVM(nameTrainDataARFF, nameTestDataARFF, typeKernel);
-                } else if (cb_classifier.getSelectedItem().equals("Naive Bayes (NB)")) {
-                    accuracies[i][j] = WekaClassifier.naiveBayes(nameTrainDataARFF, nameTestDataARFF);
-                } else if (cb_classifier.getSelectedItem().equals("Decision Tree (C4.5)")) {
-                    accuracies[i][j] = WekaClassifier.dTree(nameTrainDataARFF, nameTestDataARFF, confidence, minNum);
-                }
-
-                //updates the value of progress bar
-                progressValue = (int) ((upProgValue(numSelectedSubsets.length, i, j) / totalValuesProgress) * 100);
-                repaint();
-            }
-            //randomly splits the datasets
-            if (rd_randSet.isSelected()) {
-                data.preProcessing(txt_inputdst.getText(), txt_classLbl.getText());
-            }
-        }
-        createFeatureFiles(Results, pathProject);
-        errorRates = MathFunc.computeErrorRate(accuracies);
-        averageAccuracies = MathFunc.computeAverageArray(accuracies);
-        averageErrorRates = MathFunc.computeErrorRate(averageAccuracies);
-        averageTimes = MathFunc.computeAverageArray(times);
-
-        //show the result values in the panel of result
-        resPanel.setMessage(addTextToPanel(Results, "Subsets of selected features in each iteration"));
-        resPanel.setMessage(addTextToPanel(accuracies, "Classification accuracies"));
-        resPanel.setMessage(addTextToPanel(averageAccuracies, "Average classification accuracies", true));
-        resPanel.setMessage(addTextToPanel(times, "Execution times"));
-        resPanel.setMessage(addTextToPanel(averageTimes, "Average execution times", true));
-        resPanel.setEnabledButton();
-        setEnabledItem();
-    }
-
-    /**
-     * This method performs the feature selection based on supervised Laplacian
-     * score method.
-     *
-     * @see KurdFeast.featureSelection.filter.supervised.LaplacianScore
-     */
-    private void laplacianScoreSupPerform() {
-        progressValue = 1;
-        repaint();
-        ResultPanel resPanel = new ResultPanel(pathProject);
-        //save initial information of the dataset
-        resPanel.setMessage(addTextToPanel());
-
-        int numRuns = Integer.parseInt(cb_start.getSelectedItem().toString());
-        accuracies = new double[numRuns][numSelectedSubsets.length];
-        times = new double[numRuns][numSelectedSubsets.length];
-        String[][] Results = new String[numRuns][numSelectedSubsets.length];
-        double totalValuesProgress = numRuns * numSelectedSubsets.length;
-
-        for (int i = 0; i < numRuns; i++) {
-            resPanel.setMessage("  Iteration (" + (i + 1) + "):\n");
-            for (int j = 0; j < numSelectedSubsets.length; j++) {
-                resPanel.setMessage("    " + numSelectedSubsets[j] + " feature selected:\n");
-                long startTime = System.currentTimeMillis();
-
-                LaplacianScore method = new LaplacianScore(numSelectedSubsets[j], constParam);
-//                System.out.println("Laplacian score...   constant param: " + constParam);
-                method.loadDataSet(data);
-                method.evaluateFeatures();
-
-                long endTime = System.currentTimeMillis();
-                times[i][j] = (endTime - startTime) / 1000.0;
-
-                int[] subset = method.getSelectedFeatureSubset();
-                double[] computeValues = method.getValues();
-                //shows new results in the panel of results
-                resPanel.setMessage(addTextToPanel(computeValues, "Laplacian score"));
-                resPanel.setMessage(addTextToPanel(subset));
-
-                Results[i][j] = data.createFeatNames(subset);
-
-                String nameTrainDataCSV = pathDataCSV + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                String nameTrainDataARFF = pathDataARFF + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-                String nameTestDataCSV = pathDataCSV + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                String nameTestDataARFF = pathDataARFF + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-
-                data.createCSVFile(data.getTrainSet(), subset, nameTrainDataCSV);
-                data.createCSVFile(data.getTestSet(), subset, nameTestDataCSV);
-                arff.convertCSVtoARFF(nameTrainDataCSV, nameTrainDataARFF, pathProject, subset.length, data);
-                arff.convertCSVtoARFF(nameTestDataCSV, nameTestDataARFF, pathProject, subset.length, data);
-
-                if (cb_classifier.getSelectedItem().equals("Support Vector Machine (SVM)")) {
-                    accuracies[i][j] = WekaClassifier.SVM(nameTrainDataARFF, nameTestDataARFF, typeKernel);
-                } else if (cb_classifier.getSelectedItem().equals("Naive Bayes (NB)")) {
-                    accuracies[i][j] = WekaClassifier.naiveBayes(nameTrainDataARFF, nameTestDataARFF);
-                } else if (cb_classifier.getSelectedItem().equals("Decision Tree (C4.5)")) {
-                    accuracies[i][j] = WekaClassifier.dTree(nameTrainDataARFF, nameTestDataARFF, confidence, minNum);
-                }
-
-                //updates the value of progress bar
-                progressValue = (int) ((upProgValue(numSelectedSubsets.length, i, j) / totalValuesProgress) * 100);
-                repaint();
-            }
-            //randomly splits the datasets
-            if (rd_randSet.isSelected()) {
-                data.preProcessing(txt_inputdst.getText(), txt_classLbl.getText());
-            }
-        }
-        createFeatureFiles(Results, pathProject);
-        errorRates = MathFunc.computeErrorRate(accuracies);
-        averageAccuracies = MathFunc.computeAverageArray(accuracies);
-        averageErrorRates = MathFunc.computeErrorRate(averageAccuracies);
-        averageTimes = MathFunc.computeAverageArray(times);
-
-        //show the result values in the panel of result
-        resPanel.setMessage(addTextToPanel(Results, "Subsets of selected features in each iteration"));
-        resPanel.setMessage(addTextToPanel(accuracies, "Classification accuracies"));
-        resPanel.setMessage(addTextToPanel(averageAccuracies, "Average classification accuracies", true));
-        resPanel.setMessage(addTextToPanel(times, "Execution times"));
-        resPanel.setMessage(addTextToPanel(averageTimes, "Average execution times", true));
-        resPanel.setEnabledButton();
-        setEnabledItem();
-    }
-
-    /**
-     * This method performs the feature selection based on minimal redundancy
-     * maximal relevance (mRMR) method.
-     *
-     * @see KurdFeast.featureSelection.filter.supervised.MRMR
-     */
-    private void MRMRPerform() {
-        progressValue = 1;
-        repaint();
-        ResultPanel resPanel = new ResultPanel(pathProject);
-        //save initial information of the dataset
-        resPanel.setMessage(addTextToPanel());
-
-        int numRuns = Integer.parseInt(cb_start.getSelectedItem().toString());
-        accuracies = new double[numRuns][numSelectedSubsets.length];
-        times = new double[numRuns][numSelectedSubsets.length];
-        String[][] Results = new String[numRuns][numSelectedSubsets.length];
-        double totalValuesProgress = numRuns * numSelectedSubsets.length;
-
-        for (int i = 0; i < numRuns; i++) {
-            resPanel.setMessage("  Iteration (" + (i + 1) + "):\n");
-            for (int j = 0; j < numSelectedSubsets.length; j++) {
-                resPanel.setMessage("    " + numSelectedSubsets[j] + " feature selected:\n");
-                long startTime = System.currentTimeMillis();
-
-                MRMR method = new MRMR(numSelectedSubsets[j]);
-                method.loadDataSet(data);
-                method.evaluateFeatures();
-
-                long endTime = System.currentTimeMillis();
-                times[i][j] = (endTime - startTime) / 1000.0;
-
-                int[] subset = method.getSelectedFeatureSubset();
-                //shows new results in the panel of results
-                resPanel.setMessage(addTextToPanel(subset));
-
-                Results[i][j] = data.createFeatNames(subset);
-
-                String nameTrainDataCSV = pathDataCSV + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                String nameTrainDataARFF = pathDataARFF + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-                String nameTestDataCSV = pathDataCSV + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                String nameTestDataARFF = pathDataARFF + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-
-                data.createCSVFile(data.getTrainSet(), subset, nameTrainDataCSV);
-                data.createCSVFile(data.getTestSet(), subset, nameTestDataCSV);
-                arff.convertCSVtoARFF(nameTrainDataCSV, nameTrainDataARFF, pathProject, subset.length, data);
-                arff.convertCSVtoARFF(nameTestDataCSV, nameTestDataARFF, pathProject, subset.length, data);
-
-                if (cb_classifier.getSelectedItem().equals("Support Vector Machine (SVM)")) {
-                    accuracies[i][j] = WekaClassifier.SVM(nameTrainDataARFF, nameTestDataARFF, typeKernel);
-                } else if (cb_classifier.getSelectedItem().equals("Naive Bayes (NB)")) {
-                    accuracies[i][j] = WekaClassifier.naiveBayes(nameTrainDataARFF, nameTestDataARFF);
-                } else if (cb_classifier.getSelectedItem().equals("Decision Tree (C4.5)")) {
-                    accuracies[i][j] = WekaClassifier.dTree(nameTrainDataARFF, nameTestDataARFF, confidence, minNum);
-                }
-
-                //updates the value of progress bar
-                progressValue = (int) ((upProgValue(numSelectedSubsets.length, i, j) / totalValuesProgress) * 100);
-                repaint();
-            }
-            //randomly splits the datasets
-            if (rd_randSet.isSelected()) {
-                data.preProcessing(txt_inputdst.getText(), txt_classLbl.getText());
-            }
-        }
-        createFeatureFiles(Results, pathProject);
-        errorRates = MathFunc.computeErrorRate(accuracies);
-        averageAccuracies = MathFunc.computeAverageArray(accuracies);
-        averageErrorRates = MathFunc.computeErrorRate(averageAccuracies);
-        averageTimes = MathFunc.computeAverageArray(times);
-
-        //show the result values in the panel of result
-        resPanel.setMessage(addTextToPanel(Results, "Subsets of selected features in each iteration"));
-        resPanel.setMessage(addTextToPanel(accuracies, "Classification accuracies"));
-        resPanel.setMessage(addTextToPanel(averageAccuracies, "Average classification accuracies", true));
-        resPanel.setMessage(addTextToPanel(times, "Execution times"));
-        resPanel.setMessage(addTextToPanel(averageTimes, "Average execution times", true));
-        resPanel.setEnabledButton();
-        setEnabledItem();
-    }
-
-    /**
-     * This method performs the feature selection based on supervised 
-     * relevance-redundancy feature selection(RRFS) method.
-     *
-     * @see KurdFeast.featureSelection.filter.supervised.RRFS
-     */
-    private void RRFSSupPerform() {
-        progressValue = 1;
-        repaint();
-        ResultPanel resPanel = new ResultPanel(pathProject);
-        //save initial information of the dataset
-        resPanel.setMessage(addTextToPanel());
-
-        int numRuns = Integer.parseInt(cb_start.getSelectedItem().toString());
-        accuracies = new double[numRuns][numSelectedSubsets.length];
-        times = new double[numRuns][numSelectedSubsets.length];
-        String[][] Results = new String[numRuns][numSelectedSubsets.length];
-        double totalValuesProgress = numRuns * numSelectedSubsets.length;
-
-        for (int i = 0; i < numRuns; i++) {
-            resPanel.setMessage("  Iteration (" + (i + 1) + "):\n");
-            for (int j = 0; j < numSelectedSubsets.length; j++) {
-                long startTime = System.currentTimeMillis();
-
-                RRFS method = new RRFS(numSelectedSubsets[j], simValue);
-//                System.out.println("RRFS.....    similarity = " + simValue);
-                method.loadDataSet(data);
-                method.evaluateFeatures();
-
-                long endTime = System.currentTimeMillis();
-                times[i][j] = (endTime - startTime) / 1000.0;
-
-                int[] subset = method.getSelectedFeatureSubset();
-                //shows new results in the panel of results
-                resPanel.setMessage("    " + subset.length + " feature selected:\n");
-                resPanel.setMessage(addTextToPanel(subset));
-
-                Results[i][j] = data.createFeatNames(subset);
-
-                String nameTrainDataCSV = pathDataCSV + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                String nameTrainDataARFF = pathDataARFF + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-                String nameTestDataCSV = pathDataCSV + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                String nameTestDataARFF = pathDataARFF + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-
-                data.createCSVFile(data.getTrainSet(), subset, nameTrainDataCSV);
-                data.createCSVFile(data.getTestSet(), subset, nameTestDataCSV);
-                arff.convertCSVtoARFF(nameTrainDataCSV, nameTrainDataARFF, pathProject, subset.length, data);
-                arff.convertCSVtoARFF(nameTestDataCSV, nameTestDataARFF, pathProject, subset.length, data);
-
-                if (cb_classifier.getSelectedItem().equals("Support Vector Machine (SVM)")) {
-                    accuracies[i][j] = WekaClassifier.SVM(nameTrainDataARFF, nameTestDataARFF, typeKernel);
-                } else if (cb_classifier.getSelectedItem().equals("Naive Bayes (NB)")) {
-                    accuracies[i][j] = WekaClassifier.naiveBayes(nameTrainDataARFF, nameTestDataARFF);
-                } else if (cb_classifier.getSelectedItem().equals("Decision Tree (C4.5)")) {
-                    accuracies[i][j] = WekaClassifier.dTree(nameTrainDataARFF, nameTestDataARFF, confidence, minNum);
-                }
-
-                //updates the value of progress bar
-                progressValue = (int) ((upProgValue(numSelectedSubsets.length, i, j) / totalValuesProgress) * 100);
-                repaint();
-            }
-            //randomly splits the datasets
-            if (rd_randSet.isSelected()) {
-                data.preProcessing(txt_inputdst.getText(), txt_classLbl.getText());
-            }
-        }
-        createFeatureFiles(Results, pathProject);
-        errorRates = MathFunc.computeErrorRate(accuracies);
-        averageAccuracies = MathFunc.computeAverageArray(accuracies);
-        averageErrorRates = MathFunc.computeErrorRate(averageAccuracies);
-        averageTimes = MathFunc.computeAverageArray(times);
-
-        //show the result values in the panel of result
-        resPanel.setMessage(addTextToPanel(Results, "Subsets of selected features in each iteration"));
-        resPanel.setMessage(addTextToPanel(accuracies, "Classification accuracies"));
-        resPanel.setMessage(addTextToPanel(averageAccuracies, "Average classification accuracies", true));
-        resPanel.setMessage(addTextToPanel(times, "Execution times"));
-        resPanel.setMessage(addTextToPanel(averageTimes, "Average execution times", true));
-        resPanel.setEnabledButton();
-        setEnabledItem();
-    }
-
-    /**
-     * This method performs the feature selection based on term variance method.
-     *
-     * @see KurdFeast.featureSelection.filter.unsupervised.TermVariance
-     */
-    private void termVariancePerform() {
-        progressValue = 1;
-        repaint();
-        ResultPanel resPanel = new ResultPanel(pathProject);
-        //save initial information of the dataset
-        resPanel.setMessage(addTextToPanel());
-
-        int numRuns = Integer.parseInt(cb_start.getSelectedItem().toString());
-        accuracies = new double[numRuns][numSelectedSubsets.length];
-        times = new double[numRuns][numSelectedSubsets.length];
-        String[][] Results = new String[numRuns][numSelectedSubsets.length];
-        double totalValuesProgress = numRuns * numSelectedSubsets.length;
-
-        for (int i = 0; i < numRuns; i++) {
-            resPanel.setMessage("  Iteration (" + (i + 1) + "):\n");
-            for (int j = 0; j < numSelectedSubsets.length; j++) {
-                resPanel.setMessage("    " + numSelectedSubsets[j] + " feature selected:\n");
-                long startTime = System.currentTimeMillis();
-
-                TermVariance method = new TermVariance(numSelectedSubsets[j]);
-                method.loadDataSet(data);
-                method.evaluateFeatures();
-
-                long endTime = System.currentTimeMillis();
-                times[i][j] = (endTime - startTime) / 1000.0;
-
-                int[] subset = method.getSelectedFeatureSubset();
-                double[] computeValues = method.getValues();
-                //shows new results in the panel of results
-                resPanel.setMessage(addTextToPanel(computeValues, "term variance"));
-                resPanel.setMessage(addTextToPanel(subset));
-
-                Results[i][j] = data.createFeatNames(subset);
-
-                String nameTrainDataCSV = pathDataCSV + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                String nameTrainDataARFF = pathDataARFF + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-                String nameTestDataCSV = pathDataCSV + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                String nameTestDataARFF = pathDataARFF + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-
-                data.createCSVFile(data.getTrainSet(), subset, nameTrainDataCSV);
-                data.createCSVFile(data.getTestSet(), subset, nameTestDataCSV);
-                arff.convertCSVtoARFF(nameTrainDataCSV, nameTrainDataARFF, pathProject, subset.length, data);
-                arff.convertCSVtoARFF(nameTestDataCSV, nameTestDataARFF, pathProject, subset.length, data);
-
-                if (cb_classifier.getSelectedItem().equals("Support Vector Machine (SVM)")) {
-                    accuracies[i][j] = WekaClassifier.SVM(nameTrainDataARFF, nameTestDataARFF, typeKernel);
-                } else if (cb_classifier.getSelectedItem().equals("Naive Bayes (NB)")) {
-                    accuracies[i][j] = WekaClassifier.naiveBayes(nameTrainDataARFF, nameTestDataARFF);
-                } else if (cb_classifier.getSelectedItem().equals("Decision Tree (C4.5)")) {
-                    accuracies[i][j] = WekaClassifier.dTree(nameTrainDataARFF, nameTestDataARFF, confidence, minNum);
-                }
-
-                //updates the value of progress bar
-                progressValue = (int) ((upProgValue(numSelectedSubsets.length, i, j) / totalValuesProgress) * 100);
-                repaint();
-            }
-            //randomly splits the datasets
-            if (rd_randSet.isSelected()) {
-                data.preProcessing(txt_inputdst.getText(), txt_classLbl.getText());
-            }
-        }
-        createFeatureFiles(Results, pathProject);
-        errorRates = MathFunc.computeErrorRate(accuracies);
-        averageAccuracies = MathFunc.computeAverageArray(accuracies);
-        averageErrorRates = MathFunc.computeErrorRate(averageAccuracies);
-        averageTimes = MathFunc.computeAverageArray(times);
-
-        //show the result values in the panel of result
-        resPanel.setMessage(addTextToPanel(Results, "Subsets of selected features in each iteration"));
-        resPanel.setMessage(addTextToPanel(accuracies, "Classification accuracies"));
-        resPanel.setMessage(addTextToPanel(averageAccuracies, "Average classification accuracies", true));
-        resPanel.setMessage(addTextToPanel(times, "Execution times"));
-        resPanel.setMessage(addTextToPanel(averageTimes, "Average execution times", true));
-        resPanel.setEnabledButton();
-        setEnabledItem();
-    }
-
-    /**
-     * This method performs the feature selection based on unsupervised
-     * Laplacian score method.
-     *
-     * @see KurdFeast.featureSelection.filter.unsupervised.LaplacianScore
-     */
-    private void laplacianScoreUnsupPerform() {
-        if (KNearest >= data.getNumTrainSet()) {
-            JOptionPane.showMessageDialog(null, "The parameter value of Laplacian score (k-nearest neighbor) is incorred.", "Error", JOptionPane.ERROR_MESSAGE);
-        } else {
-            progressValue = 1;
-            repaint();
-            ResultPanel resPanel = new ResultPanel(pathProject);
-            //save initial information of the dataset
-            resPanel.setMessage(addTextToPanel());
-
-            int numRuns = Integer.parseInt(cb_start.getSelectedItem().toString());
-            accuracies = new double[numRuns][numSelectedSubsets.length];
-            times = new double[numRuns][numSelectedSubsets.length];
-            String[][] Results = new String[numRuns][numSelectedSubsets.length];
-            double totalValuesProgress = numRuns * numSelectedSubsets.length;
-
-            for (int i = 0; i < numRuns; i++) {
-                resPanel.setMessage("  Iteration (" + (i + 1) + "):\n");
-                for (int j = 0; j < numSelectedSubsets.length; j++) {
-                    resPanel.setMessage("    " + numSelectedSubsets[j] + " feature selected:\n");
-                    long startTime = System.currentTimeMillis();
-
-                    KFST.featureSelection.filter.unsupervised.LaplacianScore method = new KFST.featureSelection.filter.unsupervised.LaplacianScore(numSelectedSubsets[j], constParam, KNearest);
-//                    System.out.println("Laplacian score...   constant param: " + constParam
-//                            + "   KNN = " + KNearest);
-                    method.loadDataSet(data);
-                    method.evaluateFeatures();
-
-                    long endTime = System.currentTimeMillis();
-                    times[i][j] = (endTime - startTime) / 1000.0;
-
-                    int[] subset = method.getSelectedFeatureSubset();
-                    double[] computeValues = method.getValues();
-                    //shows new results in the panel of results
-                    resPanel.setMessage(addTextToPanel(computeValues, "Laplacian score"));
-                    resPanel.setMessage(addTextToPanel(subset));
-
-                    Results[i][j] = data.createFeatNames(subset);
-
-                    String nameTrainDataCSV = pathDataCSV + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                    String nameTrainDataARFF = pathDataARFF + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-                    String nameTestDataCSV = pathDataCSV + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                    String nameTestDataARFF = pathDataARFF + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-
-                    data.createCSVFile(data.getTrainSet(), subset, nameTrainDataCSV);
-                    data.createCSVFile(data.getTestSet(), subset, nameTestDataCSV);
-                    arff.convertCSVtoARFF(nameTrainDataCSV, nameTrainDataARFF, pathProject, subset.length, data);
-                    arff.convertCSVtoARFF(nameTestDataCSV, nameTestDataARFF, pathProject, subset.length, data);
-
-                    if (cb_classifier.getSelectedItem().equals("Support Vector Machine (SVM)")) {
-                        accuracies[i][j] = WekaClassifier.SVM(nameTrainDataARFF, nameTestDataARFF, typeKernel);
-                    } else if (cb_classifier.getSelectedItem().equals("Naive Bayes (NB)")) {
-                        accuracies[i][j] = WekaClassifier.naiveBayes(nameTrainDataARFF, nameTestDataARFF);
-                    } else if (cb_classifier.getSelectedItem().equals("Decision Tree (C4.5)")) {
-                        accuracies[i][j] = WekaClassifier.dTree(nameTrainDataARFF, nameTestDataARFF, confidence, minNum);
-                    }
-
-                    //updates the value of progress bar
-                    progressValue = (int) ((upProgValue(numSelectedSubsets.length, i, j) / totalValuesProgress) * 100);
-                    repaint();
-                }
-                //randomly splits the datasets
-                if (rd_randSet.isSelected()) {
-                    data.preProcessing(txt_inputdst.getText(), txt_classLbl.getText());
-                }
-            }
-            createFeatureFiles(Results, pathProject);
-            errorRates = MathFunc.computeErrorRate(accuracies);
-            averageAccuracies = MathFunc.computeAverageArray(accuracies);
-            averageErrorRates = MathFunc.computeErrorRate(averageAccuracies);
-            averageTimes = MathFunc.computeAverageArray(times);
-
-            //show the result values in the panel of result
-            resPanel.setMessage(addTextToPanel(Results, "Subsets of selected features in each iteration"));
-            resPanel.setMessage(addTextToPanel(accuracies, "Classification accuracies"));
-            resPanel.setMessage(addTextToPanel(averageAccuracies, "Average classification accuracies", true));
-            resPanel.setMessage(addTextToPanel(times, "Execution times"));
-            resPanel.setMessage(addTextToPanel(averageTimes, "Average execution times", true));
-            resPanel.setEnabledButton();
-            setEnabledItem();
-        }
-    }
-
-    /**
-     * This method performs the feature selection based on mutual correlation
-     * method.
-     *
-     * @see KurdFeast.featureSelection.filter.unsupervised.MutualCorrelation
-     */
-    private void mutualCorrelationPerform() {
-        progressValue = 1;
-        repaint();
-        ResultPanel resPanel = new ResultPanel(pathProject);
-        //save initial information of the dataset
-        resPanel.setMessage(addTextToPanel());
-
-        int numRuns = Integer.parseInt(cb_start.getSelectedItem().toString());
-        accuracies = new double[numRuns][numSelectedSubsets.length];
-        times = new double[numRuns][numSelectedSubsets.length];
-        String[][] Results = new String[numRuns][numSelectedSubsets.length];
-        double totalValuesProgress = numRuns * numSelectedSubsets.length;
-
-        for (int i = 0; i < numRuns; i++) {
-            resPanel.setMessage("  Iteration (" + (i + 1) + "):\n");
-            for (int j = 0; j < numSelectedSubsets.length; j++) {
-                resPanel.setMessage("    " + numSelectedSubsets[j] + " feature selected:\n");
-                long startTime = System.currentTimeMillis();
-
-                MutualCorrelation method = new MutualCorrelation(numSelectedSubsets[j]);
-                method.loadDataSet(data);
-                method.evaluateFeatures();
-
-                long endTime = System.currentTimeMillis();
-                times[i][j] = (endTime - startTime) / 1000.0;
-
-                int[] subset = method.getSelectedFeatureSubset();
-                //shows new results in the panel of results
-                resPanel.setMessage(addTextToPanel(subset));
-
-                Results[i][j] = data.createFeatNames(subset);
-
-                String nameTrainDataCSV = pathDataCSV + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                String nameTrainDataARFF = pathDataARFF + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-                String nameTestDataCSV = pathDataCSV + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                String nameTestDataARFF = pathDataARFF + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-
-                data.createCSVFile(data.getTrainSet(), subset, nameTrainDataCSV);
-                data.createCSVFile(data.getTestSet(), subset, nameTestDataCSV);
-                arff.convertCSVtoARFF(nameTrainDataCSV, nameTrainDataARFF, pathProject, subset.length, data);
-                arff.convertCSVtoARFF(nameTestDataCSV, nameTestDataARFF, pathProject, subset.length, data);
-
-                if (cb_classifier.getSelectedItem().equals("Support Vector Machine (SVM)")) {
-                    accuracies[i][j] = WekaClassifier.SVM(nameTrainDataARFF, nameTestDataARFF, typeKernel);
-                } else if (cb_classifier.getSelectedItem().equals("Naive Bayes (NB)")) {
-                    accuracies[i][j] = WekaClassifier.naiveBayes(nameTrainDataARFF, nameTestDataARFF);
-                } else if (cb_classifier.getSelectedItem().equals("Decision Tree (C4.5)")) {
-                    accuracies[i][j] = WekaClassifier.dTree(nameTrainDataARFF, nameTestDataARFF, confidence, minNum);
-                }
-
-                //updates the value of progress bar
-                progressValue = (int) ((upProgValue(numSelectedSubsets.length, i, j) / totalValuesProgress) * 100);
-                repaint();
-            }
-            //randomly splits the datasets
-            if (rd_randSet.isSelected()) {
-                data.preProcessing(txt_inputdst.getText(), txt_classLbl.getText());
-            }
-        }
-        createFeatureFiles(Results, pathProject);
-        errorRates = MathFunc.computeErrorRate(accuracies);
-        averageAccuracies = MathFunc.computeAverageArray(accuracies);
-        averageErrorRates = MathFunc.computeErrorRate(averageAccuracies);
-        averageTimes = MathFunc.computeAverageArray(times);
-
-        //show the result values in the panel of result
-        resPanel.setMessage(addTextToPanel(Results, "Subsets of selected features in each iteration"));
-        resPanel.setMessage(addTextToPanel(accuracies, "Classification accuracies"));
-        resPanel.setMessage(addTextToPanel(averageAccuracies, "Average classification accuracies", true));
-        resPanel.setMessage(addTextToPanel(times, "Execution times"));
-        resPanel.setMessage(addTextToPanel(averageTimes, "Average execution times", true));
-        resPanel.setEnabledButton();
-        setEnabledItem();
-    }
-
-    /**
-     * This method performs the feature selection based on random subspace
-     * method (RSM) method.
-     *
-     * @see KurdFeast.featureSelection.filter.unsupervised.RSM
-     */
-    private void RSMPerform() {
-        if (sizeSubspace > data.getNumFeature() || elimination > sizeSubspace) {
-            JOptionPane.showMessageDialog(null, "The parameter values of RSM (size of subspace or elimination threshold) are incorred.", "Error", JOptionPane.ERROR_MESSAGE);
-        } else {
-            progressValue = 1;
-            repaint();
-            ResultPanel resPanel = new ResultPanel(pathProject);
-            //save initial information of the dataset
-            resPanel.setMessage(addTextToPanel());
-
-            int numRuns = Integer.parseInt(cb_start.getSelectedItem().toString());
-            accuracies = new double[numRuns][numSelectedSubsets.length];
-            times = new double[numRuns][numSelectedSubsets.length];
-            String[][] Results = new String[numRuns][numSelectedSubsets.length];
-            double totalValuesProgress = numRuns * numSelectedSubsets.length;
-
-            //sets the correct values of the RSM parameter
+    private Object[] getFilterApproachParameters(FilterType type, int sizeSelectedFeatureSubset) {
+        Object[] parameters;
+        if (type == FilterType.RRFS) {
+            parameters = new Object[2];
+            parameters[1] = simValue;
+        } else if (type == FilterType.RSM) {
+            parameters = new Object[5];
             int newSizeSubspace = sizeSubspace;
             int newElimination = elimination;
             if (sizeSubspace == 0 && elimination == 0) {
@@ -2381,47 +2097,345 @@ public class MainPanel extends JPanel {
             } else if (elimination == 0) {
                 newElimination = newSizeSubspace / 2 + 1;
             }
+            parameters[1] = numSelection;
+            parameters[2] = newSizeSubspace;
+            parameters[3] = newElimination;
+            parameters[4] = multMethodName;
+        } else if (type == FilterType.UFSACO) {
+            parameters = new Object[8];
+            parameters[1] = initPheromone;
+            parameters[2] = numIteration;
+            parameters[3] = numAnts;
+            parameters[4] = numFeatOfAnt;
+            parameters[5] = evRate;
+            parameters[6] = beta;
+            parameters[7] = q0;
+        } else if (type == FilterType.RRFSACO_1) {
+            parameters = new Object[7];
+            parameters[1] = numIteration;
+            parameters[2] = numAnts;
+            parameters[3] = numFeatOfAnt;
+            parameters[4] = evRate;
+            parameters[5] = beta;
+            parameters[6] = q0;
+        } else if (type == FilterType.RRFSACO_2) {
+            parameters = new Object[9];
+            parameters[1] = initPheromone;
+            parameters[2] = numIteration;
+            parameters[3] = numAnts;
+            parameters[4] = numFeatOfAnt;
+            parameters[5] = evRate;
+            parameters[6] = alpha;
+            parameters[7] = beta;
+            parameters[8] = q0;
+        } else if (type == FilterType.IRRFSACO_1) {
+            parameters = new Object[7];
+            parameters[1] = numIteration;
+            parameters[2] = numAnts;
+            parameters[3] = numFeatOfAnt;
+            parameters[4] = evRate;
+            parameters[5] = beta;
+            parameters[6] = q0;
+        } else if (type == FilterType.IRRFSACO_2) {
+            parameters = new Object[9];
+            parameters[1] = initPheromone;
+            parameters[2] = numIteration;
+            parameters[3] = numAnts;
+            parameters[4] = numFeatOfAnt;
+            parameters[5] = evRate;
+            parameters[6] = alpha;
+            parameters[7] = beta;
+            parameters[8] = q0;
+        } else if (type == FilterType.MGSACO) {
+            parameters = new Object[7];
+            parameters[1] = initPheromone;
+            parameters[2] = numIteration;
+            parameters[3] = numAnts;
+            parameters[4] = evRate;
+            parameters[5] = beta;
+            parameters[6] = q0;
+        } else {
+            parameters = new Object[1];
+        }
+
+        parameters[0] = sizeSelectedFeatureSubset;
+
+        return parameters;
+    }
+
+    /**
+     * This method returns a list of parameters that are applied in a given
+     * feature weighting method
+     *
+     * @param type type of the feature selection method
+     * @param sizeSelectedFeatureSubset the number of selected features
+     *
+     * @return a list of parameters
+     */
+    private Object[] getWeightedFilterApproachParameters(FilterType type, int sizeSelectedFeatureSubset) {
+        Object[] parameters;
+        if (type == FilterType.LAPLACIAN_SCORE) {
+            boolean isSupervised = !cb_supervised.getSelectedItem().equals(FilterType.NONE.toString());
+            if (isSupervised) {
+                parameters = new Object[2];
+                parameters[1] = constParam;
+            } else {
+                parameters = new Object[3];
+                parameters[1] = constParam;
+                parameters[2] = KNearest;
+            }
+        } else {
+            parameters = new Object[1];
+        }
+
+        parameters[0] = sizeSelectedFeatureSubset;
+
+        return parameters;
+    }
+
+    /**
+     * This method returns a list of parameters that are applied in a given
+     * wrapper-based feature selection method
+     *
+     * @param type type of the feature selection method
+     * @param numFeatures the number of original features
+     *
+     * @return a list of parameters
+     */
+    private Object[] getWrapperApproachParameters(WrapperType type, int numFeatures) {
+        Object[] parameters;
+
+        if (type == WrapperType.BPSO) {
+            parameters = new Object[14];
+            parameters[2] = bpsoFeatSelectionPanel.getClassifierType();
+            parameters[3] = bpsoFeatSelectionPanel.getSelectedClassifierPan();
+            parameters[4] = bpsoFeatSelectionPanel.getNumIteration();
+            parameters[5] = bpsoFeatSelectionPanel.getPopulationSize();
+            parameters[6] = bpsoFeatSelectionPanel.getInertiaWeight();
+            parameters[7] = bpsoFeatSelectionPanel.getC1();
+            parameters[8] = bpsoFeatSelectionPanel.getC2();
+            parameters[9] = bpsoFeatSelectionPanel.getStartPosInterval();
+            parameters[10] = bpsoFeatSelectionPanel.getEndPosInterval();
+            parameters[11] = bpsoFeatSelectionPanel.getMinVelocity();
+            parameters[12] = bpsoFeatSelectionPanel.getMaxVelocity();
+            parameters[13] = bpsoFeatSelectionPanel.getKFolds();
+        } else if (type == WrapperType.CPSO) {
+            parameters = new Object[15];
+            parameters[2] = cpsoFeatSelectionPanel.getClassifierType();
+            parameters[3] = cpsoFeatSelectionPanel.getSelectedClassifierPan();
+            parameters[4] = cpsoFeatSelectionPanel.getNumIteration();
+            parameters[5] = cpsoFeatSelectionPanel.getPopulationSize();
+            parameters[6] = cpsoFeatSelectionPanel.getInertiaWeight();
+            parameters[7] = cpsoFeatSelectionPanel.getC1();
+            parameters[8] = cpsoFeatSelectionPanel.getC2();
+            parameters[9] = cpsoFeatSelectionPanel.getStartPosInterval();
+            parameters[10] = cpsoFeatSelectionPanel.getEndPosInterval();
+            parameters[11] = cpsoFeatSelectionPanel.getMinVelocity();
+            parameters[12] = cpsoFeatSelectionPanel.getMaxVelocity();
+            parameters[13] = cpsoFeatSelectionPanel.getKFolds();
+            parameters[14] = cpsoFeatSelectionPanel.getTheta();
+        } else if (type == WrapperType.PSO42) {
+            parameters = new Object[15];
+            parameters[2] = pso42FeatSelectionPanel.getClassifierType();
+            parameters[3] = pso42FeatSelectionPanel.getSelectedClassifierPan();
+            parameters[4] = pso42FeatSelectionPanel.getNumIteration();
+            parameters[5] = pso42FeatSelectionPanel.getPopulationSize();
+            parameters[6] = pso42FeatSelectionPanel.getInertiaWeight();
+            parameters[7] = pso42FeatSelectionPanel.getC1();
+            parameters[8] = pso42FeatSelectionPanel.getC2();
+            parameters[9] = pso42FeatSelectionPanel.getStartPosInterval();
+            parameters[10] = pso42FeatSelectionPanel.getEndPosInterval();
+            parameters[11] = pso42FeatSelectionPanel.getMinVelocity();
+            parameters[12] = pso42FeatSelectionPanel.getMaxVelocity();
+            parameters[13] = pso42FeatSelectionPanel.getKFolds();
+            parameters[14] = pso42FeatSelectionPanel.getTheta();
+        } else if (type == WrapperType.HPSO_LS) {
+            parameters = new Object[16];
+            parameters[2] = hpsolsFeatSelectionPanel.getClassifierType();
+            parameters[3] = hpsolsFeatSelectionPanel.getSelectedClassifierPan();
+            parameters[4] = hpsolsFeatSelectionPanel.getNumIteration();
+            parameters[5] = hpsolsFeatSelectionPanel.getPopulationSize();
+            parameters[6] = hpsolsFeatSelectionPanel.getInertiaWeight();
+            parameters[7] = hpsolsFeatSelectionPanel.getC1();
+            parameters[8] = hpsolsFeatSelectionPanel.getC2();
+            parameters[9] = hpsolsFeatSelectionPanel.getStartPosInterval();
+            parameters[10] = hpsolsFeatSelectionPanel.getEndPosInterval();
+            parameters[11] = hpsolsFeatSelectionPanel.getMinVelocity();
+            parameters[12] = hpsolsFeatSelectionPanel.getMaxVelocity();
+            parameters[13] = hpsolsFeatSelectionPanel.getKFolds();
+            parameters[14] = hpsolsFeatSelectionPanel.getEpsilon();
+            parameters[15] = hpsolsFeatSelectionPanel.getAlpha();
+        } else if (type == WrapperType.SIMPLE_GA) {
+            parameters = new Object[13];
+            parameters[2] = simpleGAFeatSelectionPanel.getClassifierType();
+            parameters[3] = simpleGAFeatSelectionPanel.getSelectedClassifierPan();
+            parameters[4] = simpleGAFeatSelectionPanel.getSelectionType();
+            parameters[5] = simpleGAFeatSelectionPanel.getCrossOverType();
+            parameters[6] = simpleGAFeatSelectionPanel.getMutationType();
+            parameters[7] = simpleGAFeatSelectionPanel.getReplacementType();
+            parameters[8] = simpleGAFeatSelectionPanel.getNumIteration();
+            parameters[9] = simpleGAFeatSelectionPanel.getPopulationSize();
+            parameters[10] = simpleGAFeatSelectionPanel.getCrossoverRate();
+            parameters[11] = simpleGAFeatSelectionPanel.getMutationRate();
+            parameters[12] = simpleGAFeatSelectionPanel.getKFolds();
+        } else if (type == WrapperType.HGAFS) {
+            parameters = new Object[15];
+            parameters[2] = hgafsFeatSelectionPanel.getClassifierType();
+            parameters[3] = hgafsFeatSelectionPanel.getSelectedClassifierPan();
+            parameters[4] = hgafsFeatSelectionPanel.getSelectionType();
+            parameters[5] = hgafsFeatSelectionPanel.getCrossOverType();
+            parameters[6] = hgafsFeatSelectionPanel.getMutationType();
+            parameters[7] = hgafsFeatSelectionPanel.getReplacementType();
+            parameters[8] = hgafsFeatSelectionPanel.getNumIteration();
+            parameters[9] = hgafsFeatSelectionPanel.getPopulationSize();
+            parameters[10] = hgafsFeatSelectionPanel.getCrossoverRate();
+            parameters[11] = hgafsFeatSelectionPanel.getMutationRate();
+            parameters[12] = hgafsFeatSelectionPanel.getKFolds();
+            parameters[13] = hgafsFeatSelectionPanel.getEpsilon();
+            parameters[14] = hgafsFeatSelectionPanel.getMu();
+        } else if (type == WrapperType.OPTIMAL_ACO) {
+            parameters = new Object[12];
+            parameters[2] = optimalACOFeatSelectionPanel.getClassifierType();
+            parameters[3] = optimalACOFeatSelectionPanel.getSelectedClassifierPan();
+            parameters[4] = optimalACOFeatSelectionPanel.getNumIteration();
+            parameters[5] = optimalACOFeatSelectionPanel.getColonySize();
+            parameters[6] = optimalACOFeatSelectionPanel.getAlpha();
+            parameters[7] = optimalACOFeatSelectionPanel.getBeta();
+            parameters[8] = optimalACOFeatSelectionPanel.getEvRate();
+            parameters[9] = optimalACOFeatSelectionPanel.getKFolds();
+            parameters[10] = optimalACOFeatSelectionPanel.getInitPheromone();
+            parameters[11] = optimalACOFeatSelectionPanel.getPhi();
+        } else {
+            parameters = new Object[2];
+        }
+
+        parameters[0] = PATH_PROJECT;
+        parameters[1] = numFeatures;
+
+        return parameters;
+    }
+
+    /**
+     * This method returns a list of parameters that are applied in a given
+     * embedded-based feature selection method
+     *
+     * @param type type of the feature selection method
+     *
+     * @return a list of parameters
+     */
+    private Object[] getEmbeddedApproachParameters(EmbeddedType type) {
+        Object[] parameters;
+        if (type == EmbeddedType.DECISION_TREE_BASED) {
+            if (decisionTreeBasedMethodType == TreeType.C45) {
+                parameters = new Object[4];
+                parameters[2] = confidence;
+                parameters[3] = minNum;
+            } else if (decisionTreeBasedMethodType == TreeType.RANDOM_TREE) {
+                parameters = new Object[6];
+                parameters[2] = randomTreeKValue;
+                parameters[3] = randomTreeMaxDepth;
+                parameters[4] = randomTreeMinNum;
+                parameters[5] = randomTreeMinVarianceProp;
+            } else {
+                parameters = new Object[2];
+            }
+            parameters[1] = decisionTreeBasedMethodType;
+        } else if (type == EmbeddedType.RANDOM_FOREST_METHOD) {
+            parameters = new Object[5];
+            parameters[1] = TreeType.RANDOM_FOREST;
+            parameters[2] = randomForestNumFeatures;
+            parameters[3] = maxDepth;
+            parameters[4] = randomForestNumIterations;
+        } else if (type == EmbeddedType.SVM_RFE
+                || type == EmbeddedType.OVO_SVM_RFE
+                || type == EmbeddedType.OVA_SVM_RFE) {
+            parameters = new Object[3];
+            parameters[1] = svmFeatureSelectionPanel.getKernel();
+            parameters[2] = svmFeatureSelectionPanel.getParameterC();
+        } else if (type == EmbeddedType.MSVM_RFE) {
+            parameters = new Object[5];
+            parameters[1] = msvmFeatureSelectionPanel.getKernel();
+            parameters[2] = msvmFeatureSelectionPanel.getParameterC();
+            parameters[3] = msvmFeatureSelectionPanel.getNumFold();
+            parameters[4] = msvmFeatureSelectionPanel.getNumRun();
+        } else {
+            parameters = new Object[1];
+        }
+
+        parameters[0] = PATH_PROJECT;
+
+        return parameters;
+    }
+
+    /**
+     * This method returns a list of parameters that are applied in a given
+     * hybrid-based feature selection method
+     *
+     * @param type type of the feature selection method
+     * @param sizeSelectedFeatureSubset the number of selected features
+     *
+     * @return a list of parameters
+     */
+    private Object[] getHybridApproachParameters(HybridType type, int sizeSelectedFeatureSubset) {
+        Object[] parameters;
+
+        if (type == HybridType.NONE) {
+            parameters = new Object[1];
+        } else {
+            parameters = new Object[1];
+        }
+
+        parameters[0] = sizeSelectedFeatureSubset;
+
+        return parameters;
+    }
+
+    /**
+     * This method performs the feature selection based on weighted filter
+     * approach
+     *
+     * @param type name of the feature selection method
+     * @param isSupervised shows that the feature selection method is supervised
+     */
+    private void weightedFilterApproachPerform(FilterType type, boolean isSupervised) {
+        WeightedFilterApproach method = WeightedFilterApproach.newMethod(type, isSupervised,
+                getWeightedFilterApproachParameters(type, 0));
+        method.loadDataSet(data);
+        String message = method.validate();
+        if (!message.equals("")) {
+            JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
+        } else {
+            progressValue = 1;
+            repaint();
+            int numRuns = Integer.parseInt(cb_start.getSelectedItem().toString());
+            double totalValuesProgress = numRuns * numSelectedSubsets.length;
+            ResultPanel resPanel = new ResultPanel(PATH_PROJECT);
+            finalResults = new Results(data, numRuns, numSelectedSubsets.length, PATH_PROJECT,
+                    type, cb_classifier.getSelectedItem(), selectedEvaluationClassifierPanel);
+
+            //save initial information of the dataset
+            resPanel.setMessage(finalResults.toString(ResultType.DATASET_INFORMATION));
 
             for (int i = 0; i < numRuns; i++) {
                 resPanel.setMessage("  Iteration (" + (i + 1) + "):\n");
                 for (int j = 0; j < numSelectedSubsets.length; j++) {
                     resPanel.setMessage("    " + numSelectedSubsets[j] + " feature selected:\n");
-                    long startTime = System.currentTimeMillis();
 
-                    RSM method = new RSM(numSelectedSubsets[j], numSelection, newSizeSubspace, newElimination, multMethodName);
-//                    System.out.println("RSM...   num Selection = " + numSelection
-//                            + "   newSizeSubspace = " + newSizeSubspace
-//                            + "   newElimination = " + newElimination
-//                            + "   multMethodName = " + multMethodName);
+                    //Set new parameter values of feature selection method
+                    method.setNumSelectedFeature(numSelectedSubsets[j]);
                     method.loadDataSet(data);
+
+                    long startTime = System.currentTimeMillis();
                     method.evaluateFeatures();
 
-                    long endTime = System.currentTimeMillis();
-                    times[i][j] = (endTime - startTime) / 1000.0;
+                    finalResults.setTime((System.currentTimeMillis() - startTime) / 1000.0);
+                    finalResults.setCurrentSelectedSubset(i, j, method.getSelectedFeatureSubset());
+                    finalResults.setCurrentFeatureValues(method.getFeatureValues());
+                    finalResults.computePerformanceMeasures(i, j);
 
-                    int[] subset = method.getSelectedFeatureSubset();
                     //shows new results in the panel of results
-                    resPanel.setMessage(addTextToPanel(subset));
-
-                    Results[i][j] = data.createFeatNames(subset);
-
-                    String nameTrainDataCSV = pathDataCSV + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                    String nameTrainDataARFF = pathDataARFF + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-                    String nameTestDataCSV = pathDataCSV + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                    String nameTestDataARFF = pathDataARFF + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-
-                    data.createCSVFile(data.getTrainSet(), subset, nameTrainDataCSV);
-                    data.createCSVFile(data.getTestSet(), subset, nameTestDataCSV);
-                    arff.convertCSVtoARFF(nameTrainDataCSV, nameTrainDataARFF, pathProject, subset.length, data);
-                    arff.convertCSVtoARFF(nameTestDataCSV, nameTestDataARFF, pathProject, subset.length, data);
-
-                    if (cb_classifier.getSelectedItem().equals("Support Vector Machine (SVM)")) {
-                        accuracies[i][j] = WekaClassifier.SVM(nameTrainDataARFF, nameTestDataARFF, typeKernel);
-                    } else if (cb_classifier.getSelectedItem().equals("Naive Bayes (NB)")) {
-                        accuracies[i][j] = WekaClassifier.naiveBayes(nameTrainDataARFF, nameTestDataARFF);
-                    } else if (cb_classifier.getSelectedItem().equals("Decision Tree (C4.5)")) {
-                        accuracies[i][j] = WekaClassifier.dTree(nameTrainDataARFF, nameTestDataARFF, confidence, minNum);
-                    }
+                    resPanel.setMessage(finalResults.toString(ResultType.FEATURE_VALUES));
+                    resPanel.setMessage(finalResults.toString(ResultType.SELECTED_FEATURE_SUBSET));
 
                     //updates the value of progress bar
                     progressValue = (int) ((upProgValue(numSelectedSubsets.length, i, j) / totalValuesProgress) * 100);
@@ -2432,185 +2446,59 @@ public class MainPanel extends JPanel {
                     data.preProcessing(txt_inputdst.getText(), txt_classLbl.getText());
                 }
             }
-            createFeatureFiles(Results, pathProject);
-            errorRates = MathFunc.computeErrorRate(accuracies);
-            averageAccuracies = MathFunc.computeAverageArray(accuracies);
-            averageErrorRates = MathFunc.computeErrorRate(averageAccuracies);
-            averageTimes = MathFunc.computeAverageArray(times);
+            finalResults.createFeatureFiles();
+            finalResults.computeAverageValuesOfPerformanceMeasures();
 
             //show the result values in the panel of result
-            resPanel.setMessage(addTextToPanel(Results, "Subsets of selected features in each iteration"));
-            resPanel.setMessage(addTextToPanel(accuracies, "Classification accuracies"));
-            resPanel.setMessage(addTextToPanel(averageAccuracies, "Average classification accuracies", true));
-            resPanel.setMessage(addTextToPanel(times, "Execution times"));
-            resPanel.setMessage(addTextToPanel(averageTimes, "Average execution times", true));
+            resPanel.setMessage(finalResults.toString(ResultType.PERFORMANCE_MEASURES));
             resPanel.setEnabledButton();
             setEnabledItem();
         }
     }
 
     /**
-     * This method performs the feature selection based on unsupervised
-     * relevance-redundancy feature selection(RRFS) method.
+     * This method performs the feature selection based on filter-based approach
      *
-     * @see KurdFeast.featureSelection.filter.unsupervised.RRFS
+     * @param type name of the feature selection method
+     * @param isSupervised shows that the feature selection method is supervised
      */
-    private void RRFSUnsupPerform() {
-        progressValue = 1;
-        repaint();
-        ResultPanel resPanel = new ResultPanel(pathProject);
-        //save initial information of the dataset
-        resPanel.setMessage(addTextToPanel());
-
-        int numRuns = Integer.parseInt(cb_start.getSelectedItem().toString());
-        accuracies = new double[numRuns][numSelectedSubsets.length];
-        times = new double[numRuns][numSelectedSubsets.length];
-        String[][] Results = new String[numRuns][numSelectedSubsets.length];
-        double totalValuesProgress = numRuns * numSelectedSubsets.length;
-
-        for (int i = 0; i < numRuns; i++) {
-            resPanel.setMessage("  Iteration (" + (i + 1) + "):\n");
-            for (int j = 0; j < numSelectedSubsets.length; j++) {
-                long startTime = System.currentTimeMillis();
-
-                KFST.featureSelection.filter.unsupervised.RRFS method = new KFST.featureSelection.filter.unsupervised.RRFS(numSelectedSubsets[j], simValue);
-//                System.out.println("RRFS.....    similarity = " + simValue);
-                method.loadDataSet(data);
-                method.evaluateFeatures();
-
-                long endTime = System.currentTimeMillis();
-                times[i][j] = (endTime - startTime) / 1000.0;
-
-                int[] subset = method.getSelectedFeatureSubset();
-                //shows new results in the panel of results
-                resPanel.setMessage("    " + subset.length + " feature selected:\n");
-                resPanel.setMessage(addTextToPanel(subset));
-
-                Results[i][j] = data.createFeatNames(subset);
-
-                String nameTrainDataCSV = pathDataCSV + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                String nameTrainDataARFF = pathDataARFF + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-                String nameTestDataCSV = pathDataCSV + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                String nameTestDataARFF = pathDataARFF + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-
-                data.createCSVFile(data.getTrainSet(), subset, nameTrainDataCSV);
-                data.createCSVFile(data.getTestSet(), subset, nameTestDataCSV);
-                arff.convertCSVtoARFF(nameTrainDataCSV, nameTrainDataARFF, pathProject, subset.length, data);
-                arff.convertCSVtoARFF(nameTestDataCSV, nameTestDataARFF, pathProject, subset.length, data);
-
-                if (cb_classifier.getSelectedItem().equals("Support Vector Machine (SVM)")) {
-                    accuracies[i][j] = WekaClassifier.SVM(nameTrainDataARFF, nameTestDataARFF, typeKernel);
-                } else if (cb_classifier.getSelectedItem().equals("Naive Bayes (NB)")) {
-                    accuracies[i][j] = WekaClassifier.naiveBayes(nameTrainDataARFF, nameTestDataARFF);
-                } else if (cb_classifier.getSelectedItem().equals("Decision Tree (C4.5)")) {
-                    accuracies[i][j] = WekaClassifier.dTree(nameTrainDataARFF, nameTestDataARFF, confidence, minNum);
-                }
-
-                //updates the value of progress bar
-                progressValue = (int) ((upProgValue(numSelectedSubsets.length, i, j) / totalValuesProgress) * 100);
-                repaint();
-            }
-            //randomly splits the datasets
-            if (rd_randSet.isSelected()) {
-                data.preProcessing(txt_inputdst.getText(), txt_classLbl.getText());
-            }
-        }
-        createFeatureFiles(Results, pathProject);
-        errorRates = MathFunc.computeErrorRate(accuracies);
-        averageAccuracies = MathFunc.computeAverageArray(accuracies);
-        averageErrorRates = MathFunc.computeErrorRate(averageAccuracies);
-        averageTimes = MathFunc.computeAverageArray(times);
-
-        //show the result values in the panel of result
-        resPanel.setMessage(addTextToPanel(Results, "Subsets of selected features in each iteration"));
-        resPanel.setMessage(addTextToPanel(accuracies, "Classification accuracies"));
-        resPanel.setMessage(addTextToPanel(averageAccuracies, "Average classification accuracies", true));
-        resPanel.setMessage(addTextToPanel(times, "Execution times"));
-        resPanel.setMessage(addTextToPanel(averageTimes, "Average execution times", true));
-        resPanel.setEnabledButton();
-        setEnabledItem();
-    }
-
-    /**
-     * This method performs the feature selection based on unsupervised feature
-     * selection based on ant colony optimization (UFSACO) method.
-     *
-     * @see KurdFeast.featureSelection.filter.unsupervised.UFSACO
-     */
-    private void UFSACOPerform() {
-        if (numAnts > data.getNumFeature() || numFeatOfAnt > data.getNumFeature()) {
-            JOptionPane.showMessageDialog(null, "The parameter values of UFSACO (number of ants or number of features for ant) are incorred.", "Error", JOptionPane.ERROR_MESSAGE);
+    private void filterApproachPerform(FilterType type, boolean isSupervised) {
+        FilterApproach method = FilterApproach.newMethod(type, isSupervised,
+                getFilterApproachParameters(type, 0));
+        method.loadDataSet(data);
+        String message = method.validate();
+        if (!message.equals("")) {
+            JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
         } else {
             progressValue = 1;
             repaint();
-            ResultPanel resPanel = new ResultPanel(pathProject);
-            //save initial information of the dataset
-            resPanel.setMessage(addTextToPanel());
-
             int numRuns = Integer.parseInt(cb_start.getSelectedItem().toString());
-            accuracies = new double[numRuns][numSelectedSubsets.length];
-            times = new double[numRuns][numSelectedSubsets.length];
-            String[][] Results = new String[numRuns][numSelectedSubsets.length];
             double totalValuesProgress = numRuns * numSelectedSubsets.length;
+            ResultPanel resPanel = new ResultPanel(PATH_PROJECT);
+            finalResults = new Results(data, numRuns, numSelectedSubsets.length, PATH_PROJECT,
+                    type, cb_classifier.getSelectedItem(), selectedEvaluationClassifierPanel);
 
-            //sets the correct values of the UFSACO parameters
-            int newNumFeatOfAnt = numFeatOfAnt;
-            int newNumAnts = numAnts;
-            if (numAnts == 0) {
-                if (data.getNumFeature() < 100) {
-                    newNumAnts = data.getNumFeature();
-                } else {
-                    newNumAnts = 100;
-                }
-            }
+            //save initial information of the dataset
+            resPanel.setMessage(finalResults.toString(ResultType.DATASET_INFORMATION));
 
             for (int i = 0; i < numRuns; i++) {
                 resPanel.setMessage("  Iteration (" + (i + 1) + "):\n");
                 for (int j = 0; j < numSelectedSubsets.length; j++) {
                     resPanel.setMessage("    " + numSelectedSubsets[j] + " feature selected:\n");
-                    if (numFeatOfAnt == 0) {
-                        newNumFeatOfAnt = numSelectedSubsets[j];
-                    }
+
+                    //Set new parameter values of feature selection method
+                    method.setNumSelectedFeature(numSelectedSubsets[j]);
+                    method.loadDataSet(data);
 
                     long startTime = System.currentTimeMillis();
-
-                    UFSACO method = new UFSACO(numSelectedSubsets[j], initPheromone, numIteration, newNumAnts, newNumFeatOfAnt, evRate, beta, q0);
-//                    System.out.println("UFSACO...   initPheromone = " + initPheromone
-//                            + "   numIteration = " + numIteration
-//                            + "   newNumAnts = " + newNumAnts
-//                            + "   newNumFeatOfAnt = " + newNumFeatOfAnt
-//                            + "   evRate = " + evRate
-//                            + "   beta = " + beta
-//                            + "   q0 = " + q0);
-                    method.loadDataSet(data);
                     method.evaluateFeatures();
 
-                    long endTime = System.currentTimeMillis();
-                    times[i][j] = (endTime - startTime) / 1000.0;
+                    finalResults.setTime((System.currentTimeMillis() - startTime) / 1000.0);
+                    finalResults.setCurrentSelectedSubset(i, j, method.getSelectedFeatureSubset());
+                    finalResults.computePerformanceMeasures(i, j);
 
-                    int[] subset = method.getSelectedFeatureSubset();
                     //shows new results in the panel of results
-                    resPanel.setMessage(addTextToPanel(subset));
-
-                    Results[i][j] = data.createFeatNames(subset);
-
-                    String nameTrainDataCSV = pathDataCSV + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                    String nameTrainDataARFF = pathDataARFF + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-                    String nameTestDataCSV = pathDataCSV + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                    String nameTestDataARFF = pathDataARFF + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-
-                    data.createCSVFile(data.getTrainSet(), subset, nameTrainDataCSV);
-                    data.createCSVFile(data.getTestSet(), subset, nameTestDataCSV);
-                    arff.convertCSVtoARFF(nameTrainDataCSV, nameTrainDataARFF, pathProject, subset.length, data);
-                    arff.convertCSVtoARFF(nameTestDataCSV, nameTestDataARFF, pathProject, subset.length, data);
-
-                    if (cb_classifier.getSelectedItem().equals("Support Vector Machine (SVM)")) {
-                        accuracies[i][j] = WekaClassifier.SVM(nameTrainDataARFF, nameTestDataARFF, typeKernel);
-                    } else if (cb_classifier.getSelectedItem().equals("Naive Bayes (NB)")) {
-                        accuracies[i][j] = WekaClassifier.naiveBayes(nameTrainDataARFF, nameTestDataARFF);
-                    } else if (cb_classifier.getSelectedItem().equals("Decision Tree (C4.5)")) {
-                        accuracies[i][j] = WekaClassifier.dTree(nameTrainDataARFF, nameTestDataARFF, confidence, minNum);
-                    }
+                    resPanel.setMessage(finalResults.toString(ResultType.SELECTED_FEATURE_SUBSET));
 
                     //updates the value of progress bar
                     progressValue = (int) ((upProgValue(numSelectedSubsets.length, i, j) / totalValuesProgress) * 100);
@@ -2621,103 +2509,58 @@ public class MainPanel extends JPanel {
                     data.preProcessing(txt_inputdst.getText(), txt_classLbl.getText());
                 }
             }
-            createFeatureFiles(Results, pathProject);
-            errorRates = MathFunc.computeErrorRate(accuracies);
-            averageAccuracies = MathFunc.computeAverageArray(accuracies);
-            averageErrorRates = MathFunc.computeErrorRate(averageAccuracies);
-            averageTimes = MathFunc.computeAverageArray(times);
+            finalResults.createFeatureFiles();
+            finalResults.computeAverageValuesOfPerformanceMeasures();
 
             //show the result values in the panel of result
-            resPanel.setMessage(addTextToPanel(Results, "Subsets of selected features in each iteration"));
-            resPanel.setMessage(addTextToPanel(accuracies, "Classification accuracies"));
-            resPanel.setMessage(addTextToPanel(averageAccuracies, "Average classification accuracies", true));
-            resPanel.setMessage(addTextToPanel(times, "Execution times"));
-            resPanel.setMessage(addTextToPanel(averageTimes, "Average execution times", true));
+            resPanel.setMessage(finalResults.toString(ResultType.PERFORMANCE_MEASURES));
             resPanel.setEnabledButton();
             setEnabledItem();
         }
     }
 
     /**
-     * This method performs the feature selection based on relevance–redundancy
-     * feature selection based on ant colony optimization, version1 (RRFSACO_1)
-     * method.
+     * This method performs the feature selection based on wrapper-based
+     * approach
      *
-     * @see KurdFeast.featureSelection.filter.unsupervised.RRFSACO_1
+     * @param type name of the feature selection method
      */
-    private void RRFSACO_1Perform() {
-        if (numAnts > data.getNumFeature() || numFeatOfAnt > data.getNumFeature()) {
-            JOptionPane.showMessageDialog(null, "The parameter values of RRFSACO_1 (number of ants or number of features for ant) are incorred.", "Error", JOptionPane.ERROR_MESSAGE);
+    private void wrapperApproachPerform(WrapperType type) {
+        WrapperApproach method = WrapperApproach.newMethod(type, getWrapperApproachParameters(type, data.getNumFeature()));
+        method.loadDataSet(data);
+        String message = method.validate();
+        if (!message.equals("")) {
+            JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
         } else {
             progressValue = 1;
             repaint();
-            ResultPanel resPanel = new ResultPanel(pathProject);
-            //save initial information of the dataset
-            resPanel.setMessage(addTextToPanel());
-
             int numRuns = Integer.parseInt(cb_start.getSelectedItem().toString());
-            accuracies = new double[numRuns][numSelectedSubsets.length];
-            times = new double[numRuns][numSelectedSubsets.length];
-            String[][] Results = new String[numRuns][numSelectedSubsets.length];
             double totalValuesProgress = numRuns * numSelectedSubsets.length;
+            ResultPanel resPanel = new ResultPanel(PATH_PROJECT);
+            finalResults = new Results(data, numRuns, numSelectedSubsets.length, PATH_PROJECT,
+                    type, cb_classifier.getSelectedItem(), selectedEvaluationClassifierPanel);
 
-            //sets the correct values of the RRFSACO_1 parameters
-            int newNumFeatOfAnt = numFeatOfAnt;
-            int newNumAnts = numAnts;
-            if (numAnts == 0) {
-                if (data.getNumFeature() < 100) {
-                    newNumAnts = data.getNumFeature();
-                } else {
-                    newNumAnts = 100;
-                }
-            }
+            //save initial information of the dataset
+            resPanel.setMessage(finalResults.toString(ResultType.DATASET_INFORMATION));
 
             for (int i = 0; i < numRuns; i++) {
                 resPanel.setMessage("  Iteration (" + (i + 1) + "):\n");
                 for (int j = 0; j < numSelectedSubsets.length; j++) {
-                    resPanel.setMessage("    " + numSelectedSubsets[j] + " feature selected:\n");
-                    if (numFeatOfAnt == 0) {
-                        newNumFeatOfAnt = numSelectedSubsets[j];
-                    }
+
+                    //Set new parameter values of feature selection method
+                    method.setNumSelectedFeature(numSelectedSubsets[j]);
+                    method.loadDataSet(data);
 
                     long startTime = System.currentTimeMillis();
-
-                    RRFSACO_1 method = new RRFSACO_1(numSelectedSubsets[j], numIteration, newNumAnts, newNumFeatOfAnt, evRate, beta, q0);
-//                    System.out.println("RRFSACO_1...   numIteration = " + numIteration
-//                            + "   newNumAnts = " + newNumAnts
-//                            + "   newNumFeatOfAnt = " + newNumFeatOfAnt
-//                            + "   evRate = " + evRate
-//                            + "   beta = " + beta
-//                            + "   q0 = " + q0);
-                    method.loadDataSet(data);
                     method.evaluateFeatures();
 
-                    long endTime = System.currentTimeMillis();
-                    times[i][j] = (endTime - startTime) / 1000.0;
+                    finalResults.setTime((System.currentTimeMillis() - startTime) / 1000.0);
+                    finalResults.setCurrentSelectedSubset(i, j, method.getSelectedFeatureSubset());
+                    finalResults.computePerformanceMeasures(i, j);
 
-                    int[] subset = method.getSelectedFeatureSubset();
                     //shows new results in the panel of results
-                    resPanel.setMessage(addTextToPanel(subset));
-
-                    Results[i][j] = data.createFeatNames(subset);
-
-                    String nameTrainDataCSV = pathDataCSV + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                    String nameTrainDataARFF = pathDataARFF + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-                    String nameTestDataCSV = pathDataCSV + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                    String nameTestDataARFF = pathDataARFF + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-
-                    data.createCSVFile(data.getTrainSet(), subset, nameTrainDataCSV);
-                    data.createCSVFile(data.getTestSet(), subset, nameTestDataCSV);
-                    arff.convertCSVtoARFF(nameTrainDataCSV, nameTrainDataARFF, pathProject, subset.length, data);
-                    arff.convertCSVtoARFF(nameTestDataCSV, nameTestDataARFF, pathProject, subset.length, data);
-
-                    if (cb_classifier.getSelectedItem().equals("Support Vector Machine (SVM)")) {
-                        accuracies[i][j] = WekaClassifier.SVM(nameTrainDataARFF, nameTestDataARFF, typeKernel);
-                    } else if (cb_classifier.getSelectedItem().equals("Naive Bayes (NB)")) {
-                        accuracies[i][j] = WekaClassifier.naiveBayes(nameTrainDataARFF, nameTestDataARFF);
-                    } else if (cb_classifier.getSelectedItem().equals("Decision Tree (C4.5)")) {
-                        accuracies[i][j] = WekaClassifier.dTree(nameTrainDataARFF, nameTestDataARFF, confidence, minNum);
-                    }
+                    resPanel.setMessage("    " + method.getSelectedFeatureSubset().length + " feature selected:\n");
+                    resPanel.setMessage(finalResults.toString(ResultType.SELECTED_FEATURE_SUBSET));
 
                     //updates the value of progress bar
                     progressValue = (int) ((upProgValue(numSelectedSubsets.length, i, j) / totalValuesProgress) * 100);
@@ -2728,105 +2571,58 @@ public class MainPanel extends JPanel {
                     data.preProcessing(txt_inputdst.getText(), txt_classLbl.getText());
                 }
             }
-            createFeatureFiles(Results, pathProject);
-            errorRates = MathFunc.computeErrorRate(accuracies);
-            averageAccuracies = MathFunc.computeAverageArray(accuracies);
-            averageErrorRates = MathFunc.computeErrorRate(averageAccuracies);
-            averageTimes = MathFunc.computeAverageArray(times);
+            finalResults.createFeatureFiles();
+            finalResults.computeAverageValuesOfPerformanceMeasures();
 
             //show the result values in the panel of result
-            resPanel.setMessage(addTextToPanel(Results, "Subsets of selected features in each iteration"));
-            resPanel.setMessage(addTextToPanel(accuracies, "Classification accuracies"));
-            resPanel.setMessage(addTextToPanel(averageAccuracies, "Average classification accuracies", true));
-            resPanel.setMessage(addTextToPanel(times, "Execution times"));
-            resPanel.setMessage(addTextToPanel(averageTimes, "Average execution times", true));
+            resPanel.setMessage(finalResults.toString(ResultType.PERFORMANCE_MEASURES));
             resPanel.setEnabledButton();
             setEnabledItem();
         }
     }
 
     /**
-     * This method performs the feature selection based on relevance–redundancy
-     * feature selection based on ant colony optimization, version2 (RRFSACO_2)
-     * method.
+     * This method performs the feature selection based on embedded-based
+     * approach
      *
-     * @see KurdFeast.featureSelection.filter.unsupervised.RRFSACO_2
+     * @param type name of the feature selection method
      */
-    private void RRFSACO_2Perform() {
-        if (numAnts > data.getNumFeature() || numFeatOfAnt > data.getNumFeature()) {
-            JOptionPane.showMessageDialog(null, "The parameter values of RRFSACO_2 (number of ants or number of features for ant) are incorred.", "Error", JOptionPane.ERROR_MESSAGE);
+    private void embeddedApproachPerform(EmbeddedType type) {
+        EmbeddedApproach method = EmbeddedApproach.newMethod(type, getEmbeddedApproachParameters(type));
+        method.loadDataSet(data);
+        String message = method.validate();
+        if (!message.equals("")) {
+            JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
         } else {
             progressValue = 1;
             repaint();
-            ResultPanel resPanel = new ResultPanel(pathProject);
-            //save initial information of the dataset
-            resPanel.setMessage(addTextToPanel());
-
             int numRuns = Integer.parseInt(cb_start.getSelectedItem().toString());
-            accuracies = new double[numRuns][numSelectedSubsets.length];
-            times = new double[numRuns][numSelectedSubsets.length];
-            String[][] Results = new String[numRuns][numSelectedSubsets.length];
             double totalValuesProgress = numRuns * numSelectedSubsets.length;
+            ResultPanel resPanel = new ResultPanel(PATH_PROJECT);
+            finalResults = new Results(data, numRuns, numSelectedSubsets.length, PATH_PROJECT,
+                    type, cb_classifier.getSelectedItem(), selectedEvaluationClassifierPanel);
 
-            //sets the correct values of the RRFSACO_2 parameters
-            int newNumFeatOfAnt = numFeatOfAnt;
-            int newNumAnts = numAnts;
-            if (numAnts == 0) {
-                if (data.getNumFeature() < 100) {
-                    newNumAnts = data.getNumFeature();
-                } else {
-                    newNumAnts = 100;
-                }
-            }
+            //save initial information of the dataset
+            resPanel.setMessage(finalResults.toString(ResultType.DATASET_INFORMATION));
 
             for (int i = 0; i < numRuns; i++) {
                 resPanel.setMessage("  Iteration (" + (i + 1) + "):\n");
                 for (int j = 0; j < numSelectedSubsets.length; j++) {
                     resPanel.setMessage("    " + numSelectedSubsets[j] + " feature selected:\n");
-                    if (numFeatOfAnt == 0) {
-                        newNumFeatOfAnt = numSelectedSubsets[j];
-                    }
+
+                    //Set new parameter values of feature selection method
+                    method.setNumSelectedFeature(numSelectedSubsets[j]);
+                    method.loadDataSet(data);
 
                     long startTime = System.currentTimeMillis();
-
-                    RRFSACO_2 method = new RRFSACO_2(numSelectedSubsets[j], initPheromone, numIteration, newNumAnts, newNumFeatOfAnt, evRate, alpha, beta, q0);
-//                    System.out.println("RRFSACO_2...   initPheromone = " + initPheromone
-//                            + "   numIteration = " + numIteration
-//                            + "   newNumAnts = " + newNumAnts
-//                            + "   newNumFeatOfAnt = " + newNumFeatOfAnt
-//                            + "   evRate = " + evRate
-//                            + "   alpha = " + alpha
-//                            + "   beta = " + beta
-//                            + "   q0 = " + q0);
-                    method.loadDataSet(data);
                     method.evaluateFeatures();
 
-                    long endTime = System.currentTimeMillis();
-                    times[i][j] = (endTime - startTime) / 1000.0;
+                    finalResults.setTime((System.currentTimeMillis() - startTime) / 1000.0);
+                    finalResults.setCurrentSelectedSubset(i, j, method.getSelectedFeatureSubset());
+                    finalResults.computePerformanceMeasures(i, j);
 
-                    int[] subset = method.getSelectedFeatureSubset();
                     //shows new results in the panel of results
-                    resPanel.setMessage(addTextToPanel(subset));
-
-                    Results[i][j] = data.createFeatNames(subset);
-
-                    String nameTrainDataCSV = pathDataCSV + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                    String nameTrainDataARFF = pathDataARFF + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-                    String nameTestDataCSV = pathDataCSV + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                    String nameTestDataARFF = pathDataARFF + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-
-                    data.createCSVFile(data.getTrainSet(), subset, nameTrainDataCSV);
-                    data.createCSVFile(data.getTestSet(), subset, nameTestDataCSV);
-                    arff.convertCSVtoARFF(nameTrainDataCSV, nameTrainDataARFF, pathProject, subset.length, data);
-                    arff.convertCSVtoARFF(nameTestDataCSV, nameTestDataARFF, pathProject, subset.length, data);
-
-                    if (cb_classifier.getSelectedItem().equals("Support Vector Machine (SVM)")) {
-                        accuracies[i][j] = WekaClassifier.SVM(nameTrainDataARFF, nameTestDataARFF, typeKernel);
-                    } else if (cb_classifier.getSelectedItem().equals("Naive Bayes (NB)")) {
-                        accuracies[i][j] = WekaClassifier.naiveBayes(nameTrainDataARFF, nameTestDataARFF);
-                    } else if (cb_classifier.getSelectedItem().equals("Decision Tree (C4.5)")) {
-                        accuracies[i][j] = WekaClassifier.dTree(nameTrainDataARFF, nameTestDataARFF, confidence, minNum);
-                    }
+                    resPanel.setMessage(finalResults.toString(ResultType.SELECTED_FEATURE_SUBSET));
 
                     //updates the value of progress bar
                     progressValue = (int) ((upProgValue(numSelectedSubsets.length, i, j) / totalValuesProgress) * 100);
@@ -2837,103 +2633,57 @@ public class MainPanel extends JPanel {
                     data.preProcessing(txt_inputdst.getText(), txt_classLbl.getText());
                 }
             }
-            createFeatureFiles(Results, pathProject);
-            errorRates = MathFunc.computeErrorRate(accuracies);
-            averageAccuracies = MathFunc.computeAverageArray(accuracies);
-            averageErrorRates = MathFunc.computeErrorRate(averageAccuracies);
-            averageTimes = MathFunc.computeAverageArray(times);
+            finalResults.createFeatureFiles();
+            finalResults.computeAverageValuesOfPerformanceMeasures();
 
             //show the result values in the panel of result
-            resPanel.setMessage(addTextToPanel(Results, "Subsets of selected features in each iteration"));
-            resPanel.setMessage(addTextToPanel(accuracies, "Classification accuracies"));
-            resPanel.setMessage(addTextToPanel(averageAccuracies, "Average classification accuracies", true));
-            resPanel.setMessage(addTextToPanel(times, "Execution times"));
-            resPanel.setMessage(addTextToPanel(averageTimes, "Average execution times", true));
+            resPanel.setMessage(finalResults.toString(ResultType.PERFORMANCE_MEASURES));
             resPanel.setEnabledButton();
             setEnabledItem();
         }
     }
 
     /**
-     * This method performs the feature selection based on incremental 
-     * relevance–redundancy feature selection based on ant colony optimization,
-     * version1 (IRRFSACO_1) method.
+     * This method performs the feature selection based on hybrid-based approach
      *
-     * @see KurdFeast.featureSelection.filter.unsupervised.IRRFSACO_1
+     * @param type name of the feature selection method
      */
-    private void IRRFSACO_1Perform() {
-        if (numAnts > data.getNumFeature() || numFeatOfAnt > data.getNumFeature()) {
-            JOptionPane.showMessageDialog(null, "The parameter values of IRRFSACO_1 (number of ants or number of features for ant) are incorred.", "Error", JOptionPane.ERROR_MESSAGE);
+    private void hybridApproachPerform(HybridType type) {
+        HybridApproach method = HybridApproach.newMethod(type, getHybridApproachParameters(type, 0));
+        method.loadDataSet(data);
+        String message = method.validate();
+        if (!message.equals("")) {
+            JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
         } else {
             progressValue = 1;
             repaint();
-            ResultPanel resPanel = new ResultPanel(pathProject);
-            //save initial information of the dataset
-            resPanel.setMessage(addTextToPanel());
-
             int numRuns = Integer.parseInt(cb_start.getSelectedItem().toString());
-            accuracies = new double[numRuns][numSelectedSubsets.length];
-            times = new double[numRuns][numSelectedSubsets.length];
-            String[][] Results = new String[numRuns][numSelectedSubsets.length];
             double totalValuesProgress = numRuns * numSelectedSubsets.length;
+            ResultPanel resPanel = new ResultPanel(PATH_PROJECT);
+            finalResults = new Results(data, numRuns, numSelectedSubsets.length, PATH_PROJECT,
+                    type, cb_classifier.getSelectedItem(), selectedEvaluationClassifierPanel);
 
-            //sets the correct values of the IRRFSACO_1 parameters
-            int newNumFeatOfAnt = numFeatOfAnt;
-            int newNumAnts = numAnts;
-            if (numAnts == 0) {
-                if (data.getNumFeature() < 100) {
-                    newNumAnts = data.getNumFeature();
-                } else {
-                    newNumAnts = 100;
-                }
-            }
+            //save initial information of the dataset
+            resPanel.setMessage(finalResults.toString(ResultType.DATASET_INFORMATION));
 
             for (int i = 0; i < numRuns; i++) {
                 resPanel.setMessage("  Iteration (" + (i + 1) + "):\n");
                 for (int j = 0; j < numSelectedSubsets.length; j++) {
                     resPanel.setMessage("    " + numSelectedSubsets[j] + " feature selected:\n");
-                    if (numFeatOfAnt == 0) {
-                        newNumFeatOfAnt = numSelectedSubsets[j];
-                    }
+
+                    //Set new parameter values of feature selection method
+                    method.setNumSelectedFeature(numSelectedSubsets[j]);
+                    method.loadDataSet(data);
 
                     long startTime = System.currentTimeMillis();
-
-                    IRRFSACO_1 method = new IRRFSACO_1(numSelectedSubsets[j], numIteration, newNumAnts, newNumFeatOfAnt, evRate, beta, q0);
-//                    System.out.println("IRRFSACO_1...   numIteration = " + numIteration
-//                            + "   newNumAnts = " + newNumAnts
-//                            + "   newNumFeatOfAnt = " + newNumFeatOfAnt
-//                            + "   evRate = " + evRate
-//                            + "   beta = " + beta
-//                            + "   q0 = " + q0);
-                    method.loadDataSet(data);
                     method.evaluateFeatures();
 
-                    long endTime = System.currentTimeMillis();
-                    times[i][j] = (endTime - startTime) / 1000.0;
+                    finalResults.setTime((System.currentTimeMillis() - startTime) / 1000.0);
+                    finalResults.setCurrentSelectedSubset(i, j, method.getSelectedFeatureSubset());
+                    finalResults.computePerformanceMeasures(i, j);
 
-                    int[] subset = method.getSelectedFeatureSubset();
                     //shows new results in the panel of results
-                    resPanel.setMessage(addTextToPanel(subset));
-
-                    Results[i][j] = data.createFeatNames(subset);
-
-                    String nameTrainDataCSV = pathDataCSV + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                    String nameTrainDataARFF = pathDataARFF + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-                    String nameTestDataCSV = pathDataCSV + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                    String nameTestDataARFF = pathDataARFF + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-
-                    data.createCSVFile(data.getTrainSet(), subset, nameTrainDataCSV);
-                    data.createCSVFile(data.getTestSet(), subset, nameTestDataCSV);
-                    arff.convertCSVtoARFF(nameTrainDataCSV, nameTrainDataARFF, pathProject, subset.length, data);
-                    arff.convertCSVtoARFF(nameTestDataCSV, nameTestDataARFF, pathProject, subset.length, data);
-
-                    if (cb_classifier.getSelectedItem().equals("Support Vector Machine (SVM)")) {
-                        accuracies[i][j] = WekaClassifier.SVM(nameTrainDataARFF, nameTestDataARFF, typeKernel);
-                    } else if (cb_classifier.getSelectedItem().equals("Naive Bayes (NB)")) {
-                        accuracies[i][j] = WekaClassifier.naiveBayes(nameTrainDataARFF, nameTestDataARFF);
-                    } else if (cb_classifier.getSelectedItem().equals("Decision Tree (C4.5)")) {
-                        accuracies[i][j] = WekaClassifier.dTree(nameTrainDataARFF, nameTestDataARFF, confidence, minNum);
-                    }
+                    resPanel.setMessage(finalResults.toString(ResultType.SELECTED_FEATURE_SUBSET));
 
                     //updates the value of progress bar
                     progressValue = (int) ((upProgValue(numSelectedSubsets.length, i, j) / totalValuesProgress) * 100);
@@ -2944,228 +2694,11 @@ public class MainPanel extends JPanel {
                     data.preProcessing(txt_inputdst.getText(), txt_classLbl.getText());
                 }
             }
-            createFeatureFiles(Results, pathProject);
-            errorRates = MathFunc.computeErrorRate(accuracies);
-            averageAccuracies = MathFunc.computeAverageArray(accuracies);
-            averageErrorRates = MathFunc.computeErrorRate(averageAccuracies);
-            averageTimes = MathFunc.computeAverageArray(times);
+            finalResults.createFeatureFiles();
+            finalResults.computeAverageValuesOfPerformanceMeasures();
 
             //show the result values in the panel of result
-            resPanel.setMessage(addTextToPanel(Results, "Subsets of selected features in each iteration"));
-            resPanel.setMessage(addTextToPanel(accuracies, "Classification accuracies"));
-            resPanel.setMessage(addTextToPanel(averageAccuracies, "Average classification accuracies", true));
-            resPanel.setMessage(addTextToPanel(times, "Execution times"));
-            resPanel.setMessage(addTextToPanel(averageTimes, "Average execution times", true));
-            resPanel.setEnabledButton();
-            setEnabledItem();
-        }
-    }
-
-    /**
-     * This method performs the feature selection based on incremental
-     * relevance–redundancy feature selection based on ant colony optimization,
-     * version2 (IRRFSACO_2) method.
-     *
-     * @see KurdFeast.featureSelection.filter.unsupervised.IRRFSACO_2
-     */
-    private void IRRFSACO_2Perform() {
-        if (numAnts > data.getNumFeature() || numFeatOfAnt > data.getNumFeature()) {
-            JOptionPane.showMessageDialog(null, "The parameter values of IRRFSACO_2 (number of ants or number of features for ant) are incorred.", "Error", JOptionPane.ERROR_MESSAGE);
-        } else {
-            progressValue = 1;
-            repaint();
-            ResultPanel resPanel = new ResultPanel(pathProject);
-            //save initial information of the dataset
-            resPanel.setMessage(addTextToPanel());
-
-            int numRuns = Integer.parseInt(cb_start.getSelectedItem().toString());
-            accuracies = new double[numRuns][numSelectedSubsets.length];
-            times = new double[numRuns][numSelectedSubsets.length];
-            String[][] Results = new String[numRuns][numSelectedSubsets.length];
-            double totalValuesProgress = numRuns * numSelectedSubsets.length;
-
-            //sets the correct values of the IRRFSACO_2 parameters
-            int newNumFeatOfAnt = numFeatOfAnt;
-            int newNumAnts = numAnts;
-            if (numAnts == 0) {
-                if (data.getNumFeature() < 100) {
-                    newNumAnts = data.getNumFeature();
-                } else {
-                    newNumAnts = 100;
-                }
-            }
-
-            for (int i = 0; i < numRuns; i++) {
-                resPanel.setMessage("  Iteration (" + (i + 1) + "):\n");
-                for (int j = 0; j < numSelectedSubsets.length; j++) {
-                    resPanel.setMessage("    " + numSelectedSubsets[j] + " feature selected:\n");
-                    if (numFeatOfAnt == 0) {
-                        newNumFeatOfAnt = numSelectedSubsets[j];
-                    }
-
-                    long startTime = System.currentTimeMillis();
-
-                    IRRFSACO_2 method = new IRRFSACO_2(numSelectedSubsets[j], initPheromone, numIteration, newNumAnts, newNumFeatOfAnt, evRate, alpha, beta, q0);
-//                    System.out.println("IRRFSACO_2...   initPheromone = " + initPheromone
-//                            + "   numIteration = " + numIteration
-//                            + "   newNumAnts = " + newNumAnts
-//                            + "   newNumFeatOfAnt = " + newNumFeatOfAnt
-//                            + "   evRate = " + evRate
-//                            + "   alpha = " + alpha
-//                            + "   beta = " + beta
-//                            + "   q0 = " + q0);
-                    method.loadDataSet(data);
-                    method.evaluateFeatures();
-
-                    long endTime = System.currentTimeMillis();
-                    times[i][j] = (endTime - startTime) / 1000.0;
-
-                    int[] subset = method.getSelectedFeatureSubset();
-                    //shows new results in the panel of results
-                    resPanel.setMessage(addTextToPanel(subset));
-
-                    Results[i][j] = data.createFeatNames(subset);
-
-                    String nameTrainDataCSV = pathDataCSV + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                    String nameTrainDataARFF = pathDataARFF + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-                    String nameTestDataCSV = pathDataCSV + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                    String nameTestDataARFF = pathDataARFF + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-
-                    data.createCSVFile(data.getTrainSet(), subset, nameTrainDataCSV);
-                    data.createCSVFile(data.getTestSet(), subset, nameTestDataCSV);
-                    arff.convertCSVtoARFF(nameTrainDataCSV, nameTrainDataARFF, pathProject, subset.length, data);
-                    arff.convertCSVtoARFF(nameTestDataCSV, nameTestDataARFF, pathProject, subset.length, data);
-
-                    if (cb_classifier.getSelectedItem().equals("Support Vector Machine (SVM)")) {
-                        accuracies[i][j] = WekaClassifier.SVM(nameTrainDataARFF, nameTestDataARFF, typeKernel);
-                    } else if (cb_classifier.getSelectedItem().equals("Naive Bayes (NB)")) {
-                        accuracies[i][j] = WekaClassifier.naiveBayes(nameTrainDataARFF, nameTestDataARFF);
-                    } else if (cb_classifier.getSelectedItem().equals("Decision Tree (C4.5)")) {
-                        accuracies[i][j] = WekaClassifier.dTree(nameTrainDataARFF, nameTestDataARFF, confidence, minNum);
-                    }
-
-                    //updates the value of progress bar
-                    progressValue = (int) ((upProgValue(numSelectedSubsets.length, i, j) / totalValuesProgress) * 100);
-                    repaint();
-                }
-                //randomly splits the datasets
-                if (rd_randSet.isSelected()) {
-                    data.preProcessing(txt_inputdst.getText(), txt_classLbl.getText());
-                }
-            }
-            createFeatureFiles(Results, pathProject);
-            errorRates = MathFunc.computeErrorRate(accuracies);
-            averageAccuracies = MathFunc.computeAverageArray(accuracies);
-            averageErrorRates = MathFunc.computeErrorRate(averageAccuracies);
-            averageTimes = MathFunc.computeAverageArray(times);
-
-            //show the result values in the panel of result
-            resPanel.setMessage(addTextToPanel(Results, "Subsets of selected features in each iteration"));
-            resPanel.setMessage(addTextToPanel(accuracies, "Classification accuracies"));
-            resPanel.setMessage(addTextToPanel(averageAccuracies, "Average classification accuracies", true));
-            resPanel.setMessage(addTextToPanel(times, "Execution times"));
-            resPanel.setMessage(addTextToPanel(averageTimes, "Average execution times", true));
-            resPanel.setEnabledButton();
-            setEnabledItem();
-        }
-    }
-
-    /**
-     * This method performs the feature selection based on microarray gene
-     * selection based on ant colony optimization (MGSACO) method.
-     *
-     * @see KurdFeast.featureSelection.filter.unsupervised.MGSACO
-     */
-    private void MGSACOPerform() {
-        if (numAnts > data.getNumFeature()) {
-            JOptionPane.showMessageDialog(null, "The parameter value of MGSACO (number of ants) is incorred.", "Error", JOptionPane.ERROR_MESSAGE);
-        } else {
-            progressValue = 1;
-            repaint();
-            ResultPanel resPanel = new ResultPanel(pathProject);
-            //save initial information of the dataset
-            resPanel.setMessage(addTextToPanel());
-
-            int numRuns = Integer.parseInt(cb_start.getSelectedItem().toString());
-            accuracies = new double[numRuns][numSelectedSubsets.length];
-            times = new double[numRuns][numSelectedSubsets.length];
-            String[][] Results = new String[numRuns][numSelectedSubsets.length];
-            double totalValuesProgress = numRuns * numSelectedSubsets.length;
-
-            //sets the correct values of the MGSACO parameter
-            int newNumAnts = numAnts;
-            if (numAnts == 0) {
-                if (data.getNumFeature() < 100) {
-                    newNumAnts = data.getNumFeature();
-                } else {
-                    newNumAnts = 100;
-                }
-            }
-
-            for (int i = 0; i < numRuns; i++) {
-                resPanel.setMessage("  Iteration (" + (i + 1) + "):\n");
-                for (int j = 0; j < numSelectedSubsets.length; j++) {
-                    resPanel.setMessage("    " + numSelectedSubsets[j] + " feature selected:\n");
-                    long startTime = System.currentTimeMillis();
-
-                    MGSACO method = new MGSACO(numSelectedSubsets[j], initPheromone, numIteration, newNumAnts, evRate, beta, q0);
-//                    System.out.println("MGSACO...   initPheromone = " + initPheromone
-//                            + "   numIteration = " + numIteration
-//                            + "   newNumAnts = " + newNumAnts
-//                            + "   evRate = " + evRate
-//                            + "   beta = " + beta
-//                            + "   q0 = " + q0);
-                    method.loadDataSet(data);
-                    method.evaluateFeatures();
-
-                    long endTime = System.currentTimeMillis();
-                    times[i][j] = (endTime - startTime) / 1000.0;
-
-                    int[] subset = method.getSelectedFeatureSubset();
-                    //shows new results in the panel of results
-                    resPanel.setMessage(addTextToPanel(subset));
-
-                    Results[i][j] = data.createFeatNames(subset);
-
-                    String nameTrainDataCSV = pathDataCSV + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                    String nameTrainDataARFF = pathDataARFF + "trainSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-                    String nameTestDataCSV = pathDataCSV + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].csv";
-                    String nameTestDataARFF = pathDataARFF + "testSet[" + (i + 1) + "-" + numSelectedSubsets[j] + "].arff";
-
-                    data.createCSVFile(data.getTrainSet(), subset, nameTrainDataCSV);
-                    data.createCSVFile(data.getTestSet(), subset, nameTestDataCSV);
-                    arff.convertCSVtoARFF(nameTrainDataCSV, nameTrainDataARFF, pathProject, subset.length, data);
-                    arff.convertCSVtoARFF(nameTestDataCSV, nameTestDataARFF, pathProject, subset.length, data);
-
-                    if (cb_classifier.getSelectedItem().equals("Support Vector Machine (SVM)")) {
-                        accuracies[i][j] = WekaClassifier.SVM(nameTrainDataARFF, nameTestDataARFF, typeKernel);
-                    } else if (cb_classifier.getSelectedItem().equals("Naive Bayes (NB)")) {
-                        accuracies[i][j] = WekaClassifier.naiveBayes(nameTrainDataARFF, nameTestDataARFF);
-                    } else if (cb_classifier.getSelectedItem().equals("Decision Tree (C4.5)")) {
-                        accuracies[i][j] = WekaClassifier.dTree(nameTrainDataARFF, nameTestDataARFF, confidence, minNum);
-                    }
-
-                    //updates the value of progress bar
-                    progressValue = (int) ((upProgValue(numSelectedSubsets.length, i, j) / totalValuesProgress) * 100);
-                    repaint();
-                }
-                //randomly splits the datasets
-                if (rd_randSet.isSelected()) {
-                    data.preProcessing(txt_inputdst.getText(), txt_classLbl.getText());
-                }
-            }
-            createFeatureFiles(Results, pathProject);
-            errorRates = MathFunc.computeErrorRate(accuracies);
-            averageAccuracies = MathFunc.computeAverageArray(accuracies);
-            averageErrorRates = MathFunc.computeErrorRate(averageAccuracies);
-            averageTimes = MathFunc.computeAverageArray(times);
-
-            //show the result values in the panel of result
-            resPanel.setMessage(addTextToPanel(Results, "Subsets of selected features in each iteration"));
-            resPanel.setMessage(addTextToPanel(accuracies, "Classification accuracies"));
-            resPanel.setMessage(addTextToPanel(averageAccuracies, "Average classification accuracies", true));
-            resPanel.setMessage(addTextToPanel(times, "Execution times"));
-            resPanel.setMessage(addTextToPanel(averageTimes, "Average execution times", true));
+            resPanel.setMessage(finalResults.toString(ResultType.PERFORMANCE_MEASURES));
             resPanel.setEnabledButton();
             setEnabledItem();
         }
@@ -3181,186 +2714,25 @@ public class MainPanel extends JPanel {
     }
 
     /**
-     * creates the given text for showing in the results panel.<br>
-     * The text is about some information of the dataset.
-     *
-     * @return the created message as a string
-     *
-     * @see KurdFeast.gui.ResultPanel
-     * @see KurdFeast.dataset.DatasetInfo
-     */
-    private String addTextToPanel() {
-        String messages = "General infomation:\n";
-        messages += "   Path of the workspace: " + pathProject + "\n";
-        messages += "   Number of samples in the training set: " + data.getNumTrainSet() + "\n";
-        messages += "   Number of samples in the test set: " + data.getNumTestSet() + "\n";
-        messages += "   Number of features: " + data.getNumFeature() + "\n";
-        messages += "   Number of classes: " + data.getNumClass() + "\n";
-        messages += "   Name of classes {";
-        for (int i = 0; i < data.getNumClass() - 1; i++) {
-            messages += data.getClassLabel()[i] + ", ";
-        }
-        messages += data.getClassLabel()[data.getNumClass() - 1] + "}\n\n";
-        messages += "Start feature selection process:\n";
-        return messages;
-    }
-
-    /**
-     * creates the given text for showing in the results panel.<br>
-     * The text is about the subset of selected features.
-     *
-     * @param array an array of text to insert
-     *
-     * @return the created message as a string
-     *
-     * @see KurdFeast.gui.ResultPanel
-     */
-    private String addTextToPanel(int[] array) {
-        String messages = "\n        subset selected {";
-        for (int k = 0; k < array.length - 1; k++) {
-            messages += String.valueOf(array[k] + 1) + ", ";
-        }
-        messages += String.valueOf(array[array.length - 1] + 1) + "}\n\n";
-        return messages;
-    }
-
-    /**
-     * creates the given text for showing in the results panel.<br>
-     * The text is about the relevance values of features computed by given
-     * feature selection method.
-     *
-     * @param array an array of text to insert
-     * @param nameMethod the name of feature selection method
-     *
-     * @return the created message as a string
-     *
-     * @see KurdFeast.gui.ResultPanel
-     */
-    private String addTextToPanel(double[] array, String nameMethod) {
-        String messages = "";
-        for (int k = 0; k < array.length; k++) {
-            messages += "        " + nameMethod + "(" + data.getNameFeatures()[k] + ") = " + MathFunc.roundDouble(array[k], 4) + "\n";
-        }
-        return messages;
-    }
-
-    /**
-     * creates the given text for showing in the results panel.<br>
-     * The text is about the final subsets of selected features.
-     *
-     * @param array an array of text to insert
-     * @param title the name of results
-     *
-     * @return the created message as a string
-     *
-     * @see KurdFeast.gui.ResultPanel
-     */
-    private String addTextToPanel(String[][] array, String title) {
-        String messages = "\n\n" + title + ":\n";
-        for (int i = 0; i < array.length; i++) {
-            messages += "     Iteration (" + String.valueOf(i + 1) + "):\n";
-            for (int j = 0; j < array[0].length; j++) {
-                messages += "          " + String.valueOf(array[i][j]) + "\n";
-            }
-            messages += "\n";
-        }
-        return messages;
-    }
-
-    /**
-     * creates the given text for showing in the results panel.<br>
-     * The text is about the classification accuracy and execution time in each
-     * iteration.
-     *
-     * @param array an array of text to insert
-     * @param title the name of results
-     *
-     * @return the created message as a string
-     *
-     * @see KurdFeast.gui.ResultPanel
-     */
-    private String addTextToPanel(double[][] array, String title) {
-        String messages = "\n\n" + title + ":\n";
-        for (int i = 0; i < array.length; i++) {
-            messages += "     Iteration (" + String.valueOf(i + 1) + "):";
-            for (int j = 0; j < array[0].length; j++) {
-                messages += "  " + MathFunc.roundDouble(array[i][j], 3);
-            }
-            messages += "\n";
-        }
-        return messages;
-    }
-
-    /**
-     * creates the given text for showing in the results panel.<br>
-     * The text is about the average classification accuracies and average
-     * execution times in all iteration.
-     *
-     * @param array an array of text to insert
-     * @param title the name of results
-     * @param isAverage shows that the average values must be displayed
-     *
-     * @return the created message as a string
-     *
-     * @see KurdFeast.gui.ResultPanel
-     */
-    private String addTextToPanel(double[][] array, String title, boolean isAverage) {
-        String messages = "\n\n" + title + ":\n";
-        messages += "     All Iterations:  ";
-        for (int j = 0; j < array[0].length; j++) {
-            messages += MathFunc.roundDouble(array[0][j], 3) + "  ";
-        }
-        messages += "\n";
-        return messages;
-    }
-
-    /**
-     * This method create a text file of the subsets of selected features
-     *
-     * @param result the subsets of selected features in each iterations
-     * @param pathProject the path of the project
-     */
-    private void createFeatureFiles(String[][] result, String pathProject) {
-        PrintWriter pw = null;
-        try {
-            pw = new PrintWriter(new FileWriter(pathProject + "FeatureSubsetsFile.txt"));
-            pw.println("Subsets of selected features in each iteration:\n");
-            for (int i = 0; i < result.length; i++) {
-                pw.println("     Iteration (" + (i + 1) + "):");
-                for (int j = 0; j < result[0].length; j++) {
-                    pw.println("          " + result[i][j]);
-                }
-                pw.println();
-            }
-            pw.close();
-        } catch (IOException ex) {
-            Logger.getLogger(MainPanel.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    /**
      * This method checks the status of the paths of the data files
      *
      * @return true if the paths are valid
      */
     private boolean isCorrectDataset() {
-        if ((rd_randSet.isSelected()
+        return !((rd_randSet.isSelected()
                 && (txt_inputdst.getText().equals("")
                 || txt_classLbl.getText().equals("")))
                 || (rd_ttset.isSelected()
                 && (txt_trainSet.getText().equals("")
                 || txt_testSet.getText().equals("")
-                || txt_classLabel.getText().equals("")))) {
-            return false;
-        }
-        return true;
+                || txt_classLabel.getText().equals(""))));
     }
 
     /**
      * This method prints the error messages due to unselected or incorrect
-     * input values in the dataset, parameter settings, classifier,
-     * and run configuration panels
-     * 
+     * input values in the dataset, parameter settings, classifier, and run
+     * configuration panels
+     *
      * @return true if any error have been occurred
      */
     private boolean printErrorMessages() {
@@ -3441,11 +2813,11 @@ public class MainPanel extends JPanel {
 
     /**
      * updates the value of progress bar
-     * 
+     *
      * @param totalSize the size of different values of feature subsets
      * @param currentRun the current runs of the algorithm
      * @param currentSize the index of the current subset
-     * 
+     *
      * @return the new value of progress bar
      */
     private int upProgValue(int totalSize, int currentRun, int currentSize) {
@@ -3481,44 +2853,28 @@ public class MainPanel extends JPanel {
         public void run() {
 
             if (runCode == 0) {
-                if (cb_supervised.getSelectedItem().equals("Information gain")) {
-                    infoGainPerform();
-                } else if (cb_supervised.getSelectedItem().equals("Gain ratio")) {
-                    gainRatioPerform();
-                } else if (cb_supervised.getSelectedItem().equals("Symmetrical uncertainty")) {
-                    symmetricalUncertaintyPerform();
-                } else if (cb_supervised.getSelectedItem().equals("Fisher score")) {
-                    fisherScorePerform();
-                } else if (cb_supervised.getSelectedItem().equals("Gini index")) {
-                    giniIndexPerform();
-                } else if (cb_supervised.getSelectedItem().equals("Laplacian score")) {
-                    laplacianScoreSupPerform();
-                } else if (cb_supervised.getSelectedItem().equals("Minimal redundancy maximal relevance (MRMR)")) {
-                    MRMRPerform();
-                } else if (cb_supervised.getSelectedItem().equals("Relevance-redundancy feature selection (RRFS)")) {
-                    RRFSSupPerform();
-                } else if (cb_unsupervised.getSelectedItem().equals("Term variance")) {
-                    termVariancePerform();
-                } else if (cb_unsupervised.getSelectedItem().equals("Laplacian score")) {
-                    laplacianScoreUnsupPerform();
-                } else if (cb_unsupervised.getSelectedItem().equals("Mutual correlation")) {
-                    mutualCorrelationPerform();
-                } else if (cb_unsupervised.getSelectedItem().equals("Random subspace method (RSM)")) {
-                    RSMPerform();
-                } else if (cb_unsupervised.getSelectedItem().equals("Relevance-redundancy feature selection (RRFS)")) {
-                    RRFSUnsupPerform();
-                } else if (cb_unsupervised.getSelectedItem().equals("UFSACO")) {
-                    UFSACOPerform();
-                } else if (cb_unsupervised.getSelectedItem().equals("RRFSACO_1")) {
-                    RRFSACO_1Perform();
-                } else if (cb_unsupervised.getSelectedItem().equals("RRFSACO_2")) {
-                    RRFSACO_2Perform();
-                } else if (cb_unsupervised.getSelectedItem().equals("IRRFSACO_1")) {
-                    IRRFSACO_1Perform();
-                } else if (cb_unsupervised.getSelectedItem().equals("IRRFSACO_2")) {
-                    IRRFSACO_2Perform();
-                } else if (cb_unsupervised.getSelectedItem().equals("MGSACO")) {
-                    MGSACOPerform();
+                if (WeightedFilterType.isWeightedFilterMethod(cb_supervised.getSelectedItem().toString())
+                        || WeightedFilterType.isWeightedFilterMethod(cb_unsupervised.getSelectedItem().toString())) {
+
+                    boolean isSupervised = !cb_supervised.getSelectedItem().equals(FilterType.NONE.toString());
+                    FilterType type = isSupervised ? FilterType.parse(cb_supervised.getSelectedItem().toString())
+                            : FilterType.parse(cb_unsupervised.getSelectedItem().toString());
+
+                    weightedFilterApproachPerform(type, isSupervised);
+                } else if (NonWeightedFilterType.isNonWeightedFilterMethod(cb_supervised.getSelectedItem().toString())
+                        || NonWeightedFilterType.isNonWeightedFilterMethod(cb_unsupervised.getSelectedItem().toString())) {
+
+                    boolean isSupervised = !cb_supervised.getSelectedItem().equals(FilterType.NONE.toString());
+                    FilterType type = isSupervised ? FilterType.parse(cb_supervised.getSelectedItem().toString())
+                            : FilterType.parse(cb_unsupervised.getSelectedItem().toString());
+
+                    filterApproachPerform(type, isSupervised);
+                } else if (WrapperType.isWrapperMethod(cb_wrapper.getSelectedItem().toString())) {
+                    wrapperApproachPerform(WrapperType.parse(cb_wrapper.getSelectedItem().toString()));
+                } else if (EmbeddedType.isEmbeddedMethod(cb_embedded.getSelectedItem().toString())) {
+                    embeddedApproachPerform(EmbeddedType.parse(cb_embedded.getSelectedItem().toString()));
+                } else if (HybridType.isHybridMethod(cb_hybrid.getSelectedItem().toString())) {
+                    hybridApproachPerform(HybridType.parse(cb_hybrid.getSelectedItem().toString()));
                 }
             }
         }
@@ -3527,17 +2883,23 @@ public class MainPanel extends JPanel {
 //    public static void main(String[] args) {
 //        try {
 //            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-//        } catch (Exception e) {
+//            UIManager.getDefaults().put("TextArea.font", UIManager.getFont("TextField.font"));
+//        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
 //            System.out.println("Error setting native LAF: " + e);
 //        }
 //
-//        SwingUtilities.invokeLater(new Runnable() {
-//
-//            @Override
-//            public void run() {
-//                MainPanel ui = new MainPanel("C:\\Users\\ST\\Desktop");
-//                ui.createAndShow();
-//            }
+//        SwingUtilities.invokeLater(() -> {
+//            MainPanel ui1 = new MainPanel("C:\\Users\\ST\\Desktop");
+//            ui1.createAndShow();
 //        });
+//
+////        SwingUtilities.invokeLater(new Runnable() {
+////
+////            @Override
+////            public void run() {
+////                MainPanel ui = new MainPanel("C:\\Users\\ST\\Desktop");
+////                ui.createAndShow();
+////            }
+////        });
 //    }
 }

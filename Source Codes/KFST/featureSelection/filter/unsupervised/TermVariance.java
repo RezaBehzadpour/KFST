@@ -5,7 +5,7 @@
  * For more information about KFST, please visit:
  *     http://kfst.uok.ac.ir/index.html
  *
- * Copyright (C) 2016 KFST development team at University of Kurdistan,
+ * Copyright (C) 2016-2018 KFST development team at University of Kurdistan,
  * Sanandaj, Iran.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,24 +23,32 @@
  */
 package KFST.featureSelection.filter.unsupervised;
 
-import KFST.dataset.DatasetInfo;
-import KFST.featureSelection.filter.FilterApproach;
 import KFST.util.ArraysFunc;
 import KFST.util.MathFunc;
 import java.util.Arrays;
+import KFST.featureSelection.filter.WeightedFilterApproach;
 
 /**
  * This java class is used to implement the term variance method.
  *
  * @author Sina Tabakhi
+ * @see KFST.featureSelection.filter.WeightedFilterApproach
+ * @see KFST.featureSelection.FeatureWeighting
+ * @see KFST.featureSelection.FeatureSelection
  */
-public class TermVariance implements FilterApproach {
+public class TermVariance extends WeightedFilterApproach {
 
-    private double[][] trainSet;
-    private int numFeatures;
-    private int[] selectedFeatureSubset;
-    private int numSelectedFeature;
-    private double[] termVarianceValues;
+    /**
+     * initializes the parameters
+     *
+     * @param arguments array of parameter contains
+     * (<code>sizeSelectedFeatureSubset</code>) in which
+     * <code><b><i>sizeSelectedFeatureSubset</i></b></code> is the number of
+     * selected features
+     */
+    public TermVariance(Object... arguments) {
+        super((int) arguments[0]);
+    }
 
     /**
      * initializes the parameters
@@ -48,32 +56,7 @@ public class TermVariance implements FilterApproach {
      * @param sizeSelectedFeatureSubset the number of selected features
      */
     public TermVariance(int sizeSelectedFeatureSubset) {
-        numSelectedFeature = sizeSelectedFeatureSubset;
-        selectedFeatureSubset = new int[numSelectedFeature];
-    }
-
-    /**
-     * loads the dataset
-     *
-     * @param ob an object of the DatasetInfo class
-     */
-    @Override
-    public void loadDataSet(DatasetInfo ob) {
-        trainSet = ob.getTrainSet();
-        numFeatures = ob.getNumFeature();
-    }
-
-    /**
-     * loads the dataset
-     *
-     * @param data the input dataset values
-     * @param numFeat the number of features in the dataset
-     * @param numClasses the number of classes in the dataset
-     */
-    @Override
-    public void loadDataSet(double[][] data, int numFeat, int numClasses) {
-        trainSet = ArraysFunc.copyDoubleArray2D(data);
-        numFeatures = numFeat;
+        super(sizeSelectedFeatureSubset);
     }
 
     /**
@@ -82,7 +65,7 @@ public class TermVariance implements FilterApproach {
     @Override
     public void evaluateFeatures() {
         double[] meanValues = new double[numFeatures];
-        termVarianceValues = new double[numFeatures];
+        featureValues = new double[numFeatures];
         int[] indecesTV;
 
         //computes the mean values of each feature
@@ -92,12 +75,12 @@ public class TermVariance implements FilterApproach {
 
         //computes the variance values of each feature
         for (int i = 0; i < numFeatures; i++) {
-            termVarianceValues[i] = MathFunc.computeVariance(trainSet, meanValues[i], i);
+            featureValues[i] = MathFunc.computeVariance(trainSet, meanValues[i], i);
         }
 
-        indecesTV = ArraysFunc.sortWithIndex(Arrays.copyOf(termVarianceValues, termVarianceValues.length), true);
+        indecesTV = ArraysFunc.sortWithIndex(Arrays.copyOf(featureValues, featureValues.length), true);
 //        for (int i = 0; i < numFeatures; i++) {
-//            System.out.println(i + ") =  " + termVarianceValues[i]);
+//            System.out.println(i + ") =  " + featureValues[i]);
 //        }
 
         selectedFeatureSubset = Arrays.copyOfRange(indecesTV, 0, numSelectedFeature);
@@ -105,26 +88,5 @@ public class TermVariance implements FilterApproach {
 //        for (int i = 0; i < numSelectedFeature; i++) {
 //            System.out.println("ranked  = " + selectedFeatureSubset[i]);
 //        }
-    }
-
-    /**
-     * This method return the subset of selected features by term variance(TV)
-     * method.
-     *
-     * @return an array of subset of selected features
-     */
-    @Override
-    public int[] getSelectedFeatureSubset() {
-        return selectedFeatureSubset;
-    }
-
-    /**
-     * This method return the term variance values of each feature
-     *
-     * @return an array of term variance values
-     */
-    @Override
-    public double[] getValues() {
-        return termVarianceValues;
     }
 }

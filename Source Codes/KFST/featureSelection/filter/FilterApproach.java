@@ -1,72 +1,41 @@
-/*
- * Kurdistan Feature Selection Tool (KFST) is an open-source tool, developed
- * completely in Java, for performing feature selection process in different
- * areas of research.
- * For more information about KFST, please visit:
- *     http://kfst.uok.ac.ir/index.html
- *
- * Copyright (C) 2016 KFST development team at University of Kurdistan,
- * Sanandaj, Iran.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
 package KFST.featureSelection.filter;
 
-import KFST.dataset.DatasetInfo;
+import KFST.featureSelection.*;
+import KFST.featureSelection.filter.supervised.*;
+import KFST.featureSelection.filter.unsupervised.*;
 
-/**
- * The interface for implementation of the filter-based feature selection
- * methods.
- *
- * @author Sina Tabakhi
- */
-public interface FilterApproach {
+public abstract class FilterApproach extends FeatureSelection {
 
-    /**
-     * loads the dataset
-     *
-     * @param ob an object of the DatasetInfo class
-     */
-    public void loadDataSet(DatasetInfo ob);
+    public FilterApproach(int sizeSelectedFeatureSubset) {
+        super();
+        this.numSelectedFeature = sizeSelectedFeatureSubset;
+        this.selectedFeatureSubset = new int[this.numSelectedFeature];
+    }
 
-    /**
-     * loads the dataset
-     *
-     * @param data the input dataset values
-     * @param numFeat the number of features in the dataset
-     * @param numClasses the number of classes in the dataset
-     */
-    public void loadDataSet(double[][] data, int numFeat, int numClasses);
-
-    /**
-     * starts the feature selection process by a given method
-     */
-    public void evaluateFeatures();
-
-    /**
-     * return the subset of features selected by a given method.
-     *
-     * @return an array of subset of selected features
-     */
-    public int[] getSelectedFeatureSubset();
-
-    /**
-     * return the weights of features if the method gives weights of features
-     * individually and ranks them based on their relevance (i.e., feature
-     * weighting methods); otherwise, these values does not exist.
-     * 
-     * @return an array of  weights of features
-     */
-    public double[] getValues();
+    public static FilterApproach newMethod(FilterType type, boolean isSupervised, Object... arguments) {
+        if (type == FilterType.MRMR) {
+            return new MRMR(arguments);
+        } else if (type == FilterType.RRFS && isSupervised) {
+            return new KFST.featureSelection.filter.supervised.RRFS(arguments);
+        } else if (type == FilterType.RRFS && !isSupervised) {
+            return new KFST.featureSelection.filter.unsupervised.RRFS(arguments);
+        } else if (type == FilterType.MUTUAL_CORRELATION) {
+            return new MutualCorrelation(arguments);
+        } else if (type == FilterType.RSM) {
+            return new RSM(arguments);
+        } else if (type == FilterType.UFSACO) {
+            return new UFSACO(arguments);
+        } else if (type == FilterType.RRFSACO_1) {
+            return new RRFSACO_1(arguments);
+        } else if (type == FilterType.RRFSACO_2) {
+            return new RRFSACO_2(arguments);
+        } else if (type == FilterType.IRRFSACO_1) {
+            return new IRRFSACO_1(arguments);
+        } else if (type == FilterType.IRRFSACO_2) {
+            return new IRRFSACO_2(arguments);
+        } else if (type == FilterType.MGSACO) {
+            return new MGSACO(arguments);
+        }
+        return null;
+    }
 }

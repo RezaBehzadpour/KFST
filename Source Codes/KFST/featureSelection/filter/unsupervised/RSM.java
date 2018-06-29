@@ -5,7 +5,7 @@
  * For more information about KFST, please visit:
  *     http://kfst.uok.ac.ir/index.html
  *
- * Copyright (C) 2016 KFST development team at University of Kurdistan,
+ * Copyright (C) 2016-2018 KFST development team at University of Kurdistan,
  * Sanandaj, Iran.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,29 +23,48 @@
  */
 package KFST.featureSelection.filter.unsupervised;
 
-import KFST.dataset.DatasetInfo;
-import KFST.featureSelection.filter.FilterApproach;
 import KFST.util.ArraysFunc;
 import java.util.Arrays;
 import java.util.Random;
+import KFST.featureSelection.filter.FilterApproach;
+import KFST.gui.featureSelection.filter.rsm.MultivariateMethodType;
 
 /**
  * This java class is used to implement the random subspace method(RSM) method.
  *
  * @author Sina Tabakhi
+ * @see KFST.featureSelection.filter.FilterApproach
+ * @see KFST.featureSelection.FeatureSelection
  */
-public class RSM implements FilterApproach {
+public class RSM extends FilterApproach {
 
-    private double[][] trainSet;
-    private int numFeatures;
-    private int numClass;
-    private int[] selectedFeatureSubset;
-    private int numSelectedFeature;
-    private int numIteration;
-    private int sizeSubSpace;
-    private int thresholdElimination;
-    private String nameMultiApproach;
+    private final int NUM_ITERATION;
+    private final int SIZE_SUB_SPACE;
+    private final int THRESHOLD_ELIMINATION;
+    private final MultivariateMethodType NAME_MULTI_APPROACH;
     private int[] featureScore;
+
+    /**
+     * initializes the parameters
+     *
+     * @param arguments array of parameters contains
+     * (<code>sizeSelectedFeatureSubset</code>, <code>numIter</code>,
+     * <code>size</code>, <code>threshold</code>, <code>nameApproach</code>) in
+     * which <code><b><i>sizeSelectedFeatureSubset</i></b></code> is the number
+     * of selected features, <code><b><i>numIter</i></b></code> is the number of
+     * iteration in the RSM method, <code><b><i>size</i></b></code> is the size
+     * of the subspace, <code><b><i>threshold</i></b></code> is the number of
+     * selected features in each subspace, and
+     * <code><b><i>nameApproach</i></b></code> is the name of the multivariate
+     * approach used in the RSM
+     */
+    public RSM(Object... arguments) {
+        super((int) arguments[0]);
+        NUM_ITERATION = (int) arguments[1];
+        SIZE_SUB_SPACE = (int) arguments[2];
+        THRESHOLD_ELIMINATION = (int) arguments[3];
+        NAME_MULTI_APPROACH = (MultivariateMethodType) arguments[4];
+    }
 
     /**
      * initializes the parameters
@@ -56,39 +75,12 @@ public class RSM implements FilterApproach {
      * @param threshold the number of selected features in each subspace
      * @param nameApproach the name of the multivariate approach used in the RSM
      */
-    public RSM(int sizeSelectedFeatureSubset, int numIter, int size, int threshold, String nameApproach) {
-        numSelectedFeature = sizeSelectedFeatureSubset;
-        selectedFeatureSubset = new int[numSelectedFeature];
-        numIteration = numIter;
-        sizeSubSpace = size;
-        thresholdElimination = threshold;
-        nameMultiApproach = nameApproach;
-    }
-
-    /**
-     * loads the dataset
-     *
-     * @param ob an object of the DatasetInfo class
-     */
-    @Override
-    public void loadDataSet(DatasetInfo ob) {
-        trainSet = ob.getTrainSet();
-        numFeatures = ob.getNumFeature();
-        numClass = ob.getNumClass();
-    }
-
-    /**
-     * loads the dataset
-     *
-     * @param data the input dataset values
-     * @param numFeat the number of features in the dataset
-     * @param numClasses the number of classes in the dataset
-     */
-    @Override
-    public void loadDataSet(double[][] data, int numFeat, int numClasses) {
-        trainSet = ArraysFunc.copyDoubleArray2D(data);
-        numFeatures = numFeat;
-        numClass = numClasses;
+    public RSM(int sizeSelectedFeatureSubset, int numIter, int size, int threshold, MultivariateMethodType nameApproach) {
+        super(sizeSelectedFeatureSubset);
+        NUM_ITERATION = numIter;
+        SIZE_SUB_SPACE = size;
+        THRESHOLD_ELIMINATION = threshold;
+        NAME_MULTI_APPROACH = nameApproach;
     }
 
     /**
@@ -111,21 +103,21 @@ public class RSM implements FilterApproach {
     }
 
     /**
-     * selects the top feature with size thresholdElimination by given method
+     * selects the top feature with size THRESHOLD_ELIMINATION by given method
      *
      * @param data the new dataset
-     * 
-     * @return the top feature with size thresholdElimination
+     *
+     * @return the top feature with size THRESHOLD_ELIMINATION
      */
     private int[] multivariateApproach(double[][] data) {
         int[] resultSelectedFeature;
-        if (nameMultiApproach.equals("Mutual correlation")) {
-            MutualCorrelation mc = new MutualCorrelation(thresholdElimination);
-            mc.loadDataSet(data, sizeSubSpace, numClass);
+        if (NAME_MULTI_APPROACH == MultivariateMethodType.MUTUAL_CORRELATION) {
+            MutualCorrelation mc = new MutualCorrelation(THRESHOLD_ELIMINATION);
+            mc.loadDataSet(data, SIZE_SUB_SPACE, numClass);
             mc.evaluateFeatures();
             resultSelectedFeature = mc.getSelectedFeatureSubset();
         } else {
-            resultSelectedFeature = new int[thresholdElimination];
+            resultSelectedFeature = new int[THRESHOLD_ELIMINATION];
         }
         return resultSelectedFeature;
     }
@@ -134,17 +126,17 @@ public class RSM implements FilterApproach {
      * creates a new dataset based on the given indeces of the features
      *
      * @param index an array of the indeces of features
-     * 
+     *
      * @return a new dataset
      */
     private double[][] createNewDataset(int[] index) {
-        double[][] newData = new double[trainSet.length][sizeSubSpace + 1];
+        double[][] newData = new double[trainSet.length][SIZE_SUB_SPACE + 1];
 
         for (int i = 0; i < trainSet.length; i++) {
-            for (int j = 0; j < sizeSubSpace; j++) {
+            for (int j = 0; j < SIZE_SUB_SPACE; j++) {
                 newData[i][j] = trainSet[i][index[j]];
             }
-            newData[i][sizeSubSpace] = trainSet[i][numFeatures];
+            newData[i][SIZE_SUB_SPACE] = trainSet[i][numFeatures];
         }
 
         return newData;
@@ -164,21 +156,21 @@ public class RSM implements FilterApproach {
             indexFeatures[i] = i;
         }
 
-        for (int i = 0; i < numIteration; i++) {
+        for (int i = 0; i < NUM_ITERATION; i++) {
 //            System.out.println("\nIteration " + i + ":\n\n");
             permutation(indexFeatures, i);
 
-            int[] featSpace = Arrays.copyOfRange(indexFeatures, 0, sizeSubSpace);
+            int[] featSpace = Arrays.copyOfRange(indexFeatures, 0, SIZE_SUB_SPACE);
             ArraysFunc.sortArray1D(featSpace, false);
 
             //creates a new dataset based on featSpace array
             double[][] newDataset = createNewDataset(featSpace);
 
-            //selects the top feature with size thresholdElimination by given method
+            //selects the top feature with size THRESHOLD_ELIMINATION by given method
             int[] featSelected = multivariateApproach(newDataset);
 
             //updates the score of the feature selected by mutual correlation
-            for (int j = 0; j < thresholdElimination; j++) {
+            for (int j = 0; j < THRESHOLD_ELIMINATION; j++) {
                 featureScore[featSpace[featSelected[j]]]++;
             }
         }
@@ -196,27 +188,13 @@ public class RSM implements FilterApproach {
     }
 
     /**
-     * This method return the subset of selected features by random subspace
-     * method(RSM) method.
-     *
-     * @return an array of subset of selected features
+     * {@inheritDoc}
      */
     @Override
-    public int[] getSelectedFeatureSubset() {
-        return selectedFeatureSubset;
-    }
-
-    /**
-     * return the weights of features if the method gives weights of features
-     * individually and ranks them based on their relevance (i.e., feature
-     * weighting methods); otherwise, these values does not exist.
-     * <p>
-     * These values does not exist for RSM.
-     *
-     * @return an array of  weight of features
-     */
-    @Override
-    public double[] getValues() {
-        return null;
+    public String validate() {
+        if (SIZE_SUB_SPACE > numFeatures || THRESHOLD_ELIMINATION > SIZE_SUB_SPACE) {
+            return "The parameter values of RSM (size of subspace or elimination threshold) are incorred.";
+        }
+        return "";
     }
 }

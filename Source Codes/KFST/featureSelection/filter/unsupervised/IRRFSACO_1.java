@@ -5,7 +5,7 @@
  * For more information about KFST, please visit:
  *     http://kfst.uok.ac.ir/index.html
  *
- * Copyright (C) 2016 KFST development team at University of Kurdistan,
+ * Copyright (C) 2016-2018 KFST development team at University of Kurdistan,
  * Sanandaj, Iran.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,12 +23,11 @@
  */
 package KFST.featureSelection.filter.unsupervised;
 
-import KFST.dataset.DatasetInfo;
-import KFST.featureSelection.filter.FilterApproach;
 import KFST.util.ArraysFunc;
 import KFST.util.MathFunc;
 import java.util.Arrays;
 import java.util.Random;
+import KFST.featureSelection.filter.FilterApproach;
 
 /**
  * This java class is used to implement the incremental relevance-redundancy
@@ -36,20 +35,18 @@ import java.util.Random;
  * method.
  *
  * @author Sina Tabakhi
+ * @see KFST.featureSelection.filter.FilterApproach
+ * @see KFST.featureSelection.FeatureSelection
  */
-public class IRRFSACO_1 implements FilterApproach {
+public class IRRFSACO_1 extends FilterApproach {
 
-    private double[][] trainSet;
-    private int numFeatures;
-    private int numClass;
-    private int[] selectedFeatureSubset;
-    private int numSelectedFeature;
-    private int maxIteration;
-    private int numAnts;
-    private int numFeatOfAnt;
-    private double decayRate;
-    private double beta;
-    private double probChooseEquation;
+    private final int MAX_ITERATION;
+    private int NUM_ANTS;
+    private int NUM_FEAT_OF_ANT;
+    private int TEMP_NUM_FEAT_OF_ANT;
+    private final double DECAY_RATE;
+    private final double BETA;
+    private final double PROB_CHOOSE_EQUATION;
     private int[][] antSubsetSelected;
     private double[] relevanceFeature;
     private double[] simValues;
@@ -57,10 +54,38 @@ public class IRRFSACO_1 implements FilterApproach {
     private int[] featureCounter;
     private boolean[][] tabuList;
     private int[] currentState;
-//    private int seedValue = 0;
-    private double errorSimilarity = 0.0001;
-    private double errorRelevance = 0.0001;
-//    private Random randNumber = new Random(seedValue);
+//    private final int SEED_VALUE = 0;
+    private final double ERROR_SIMILARITY = 0.0001;
+    private final double ERROR_RELEVANCE = 0.0001;
+//    private Random RAND_NUMBER = new Random(SEED_VALUE);
+
+    /**
+     * initializes the parameters
+     *
+     * @param arguments array of parameters contains (
+     * <code>sizeSelectedFeatureSubset</code>, <code>numIterations</code>,
+     * <code>numAnt</code>, <code>numFeatureOfAnt</code>,
+     * <code>evaporationRate</code>, <code>betaParameter</code>,
+     * <code>q0_Parameter</code>) in which
+     * <code><b><i>sizeSelectedFeatureSubset</i></b></code> is the number of
+     * selected features, <code><b><i>numIterations</i></b></code> is the
+     * maximum number of iteration, <code><b><i>numAnt</i></b></code> is the
+     * number of ants, <code><b><i>numFeatureOfAnt</i></b></code> is the number
+     * of selected features by each ant in each iteration,
+     * <code><b><i>evaporationRate</i></b></code> is the evaporation rate of the
+     * pheromone, <code><b><i>betaParameter</i></b></code> is the beta parameter
+     * in the state transition rule, and <code><b><i>q0_Parameter</i></b></code>
+     * is the q0 parameter in the state transition rule
+     */
+    public IRRFSACO_1(Object... arguments) {
+        super((int) arguments[0]);
+        MAX_ITERATION = (int) arguments[1];
+        NUM_ANTS = (int) arguments[2];
+        NUM_FEAT_OF_ANT = TEMP_NUM_FEAT_OF_ANT = (int) arguments[3];
+        DECAY_RATE = (double) arguments[4];
+        BETA = (double) arguments[5];
+        PROB_CHOOSE_EQUATION = (double) arguments[6];
+    }
 
     /**
      * initializes the parameters
@@ -68,46 +93,20 @@ public class IRRFSACO_1 implements FilterApproach {
      * @param sizeSelectedFeatureSubset the number of selected features
      * @param numIterations the maximum number of iteration
      * @param numAnt the number of ants
-     * @param numFeatureOfAnt the number of selected features by each ant in each iteration
+     * @param numFeatureOfAnt the number of selected features by each ant in
+     * each iteration
      * @param evaporationRate the evaporation rate of the pheromone
      * @param betaParameter the beta parameter in the state transition rule
      * @param q0_Parameter the q0 parameter in the state transition rule
      */
     public IRRFSACO_1(int sizeSelectedFeatureSubset, int numIterations, int numAnt, int numFeatureOfAnt, double evaporationRate, double betaParameter, double q0_Parameter) {
-        numSelectedFeature = sizeSelectedFeatureSubset;
-        selectedFeatureSubset = new int[numSelectedFeature];
-        maxIteration = numIterations;
-        numAnts = numAnt;
-        numFeatOfAnt = numFeatureOfAnt;
-        decayRate = evaporationRate;
-        beta = betaParameter;
-        probChooseEquation = q0_Parameter;
-    }
-
-    /**
-     * loads the dataset
-     *
-     * @param ob an object of the DatasetInfo class
-     */
-    @Override
-    public void loadDataSet(DatasetInfo ob) {
-        trainSet = ob.getTrainSet();
-        numFeatures = ob.getNumFeature();
-        numClass = ob.getNumClass();
-    }
-
-    /**
-     * loads the dataset
-     *
-     * @param data the input dataset values
-     * @param numFeat the number of features in the dataset
-     * @param numClasses the number of classes in the dataset
-     */
-    @Override
-    public void loadDataSet(double[][] data, int numFeat, int numClasses) {
-        trainSet = ArraysFunc.copyDoubleArray2D(data);
-        numFeatures = numFeat;
-        numClass = numClasses;
+        super(sizeSelectedFeatureSubset);
+        MAX_ITERATION = numIterations;
+        NUM_ANTS = numAnt;
+        NUM_FEAT_OF_ANT = TEMP_NUM_FEAT_OF_ANT = numFeatureOfAnt;
+        DECAY_RATE = evaporationRate;
+        BETA = betaParameter;
+        PROB_CHOOSE_EQUATION = q0_Parameter;
     }
 
     /**
@@ -115,7 +114,7 @@ public class IRRFSACO_1 implements FilterApproach {
      *
      * @param index1 index of the row
      * @param index2 index of the column
-     * 
+     *
      * @return the index in new Data Structure
      */
     private static int findIndex(int index1, int index2) {
@@ -139,12 +138,11 @@ public class IRRFSACO_1 implements FilterApproach {
         TermVariance tv = new TermVariance(numFeatures);
         tv.loadDataSet(trainSet, numFeatures, numClass);
         tv.evaluateFeatures();
-        relevanceFeature = tv.getValues();
+        relevanceFeature = tv.getFeatureValues();
 
 //        for (int i = 0; i < numFeatures; i++) {
 //            System.out.println("relevance f(" + i + ") = " + relevanceFeature[i]);
 //        }
-
         //normalizes the relevance values by softmax scaling function
         for (int i = 0; i < numFeatures; i++) {
             mean += relevanceFeature[i];
@@ -157,12 +155,12 @@ public class IRRFSACO_1 implements FilterApproach {
         variance = Math.sqrt(variance / (numFeatures - 1));
 
         if (variance == 0) {
-            variance = errorRelevance;
+            variance = ERROR_RELEVANCE;
         }
 
         parameterControl = mean / variance;
         if (parameterControl == 0) {
-            parameterControl = errorRelevance;
+            parameterControl = ERROR_RELEVANCE;
         }
 
         for (int i = 0; i < numFeatures; i++) {
@@ -181,11 +179,11 @@ public class IRRFSACO_1 implements FilterApproach {
     private void setStartNode() {
         boolean[] checkArray = new boolean[numFeatures];
 
-        for (int i = 0; i < numAnts; i++) {
+        for (int i = 0; i < NUM_ANTS; i++) {
             //finds starting node randomly
             while (true) {
                 int rand = new Random().nextInt(numFeatures);
-//                int rand = randNumber.nextInt(numFeatures);
+//                int rand = RAND_NUMBER.nextInt(numFeatures);
                 if (!checkArray[rand]) {
                     currentState[i] = rand;
                     checkArray[rand] = true;
@@ -203,7 +201,7 @@ public class IRRFSACO_1 implements FilterApproach {
      *
      * @param indexAnt index of the ant
      * @param currentSize the current size of the selected feature
-     * 
+     *
      * @return the index of the selected feature
      */
     private int greedyRule(int indexAnt, int currentSize) {
@@ -218,7 +216,7 @@ public class IRRFSACO_1 implements FilterApproach {
                     averageSim += simValues[newIndex];
                 }
                 averageSim /= currentSize;
-                double result = pheromoneValues[j] / Math.pow(averageSim + errorSimilarity, beta);
+                double result = pheromoneValues[j] / Math.pow(averageSim + ERROR_SIMILARITY, BETA);
                 if (result > max) {
                     max = result;
                     index = j;
@@ -234,13 +232,13 @@ public class IRRFSACO_1 implements FilterApproach {
      *
      * @param indexAnt index of the ant
      * @param currentSize the current size of the selected feature
-     * 
+     *
      * @return the index of the selected feature
      */
     private int probRule(int indexAnt, int currentSize) {
         int index = -1;
         double rand = new Random().nextDouble();
-//        double rand = randNumber.nextDouble();
+//        double rand = RAND_NUMBER.nextDouble();
         double[] prob = new double[numFeatures];
         double sumOfProb = 0;
         for (int j = 0; j < numFeatures; j++) {
@@ -251,7 +249,7 @@ public class IRRFSACO_1 implements FilterApproach {
                     averageSim += simValues[newIndex];
                 }
                 averageSim /= currentSize;
-                prob[j] = pheromoneValues[j] / Math.pow(averageSim + errorSimilarity, beta);
+                prob[j] = pheromoneValues[j] / Math.pow(averageSim + ERROR_SIMILARITY, BETA);
                 sumOfProb += prob[j];
             }
         }
@@ -269,7 +267,7 @@ public class IRRFSACO_1 implements FilterApproach {
         //if the next node(feature) is not selected by previous process
         if (index == -1) {
             while (true) {
-//                int rand1 = randNumber.nextInt(numFeatures);
+//                int rand1 = RAND_NUMBER.nextInt(numFeatures);
                 int rand1 = new Random().nextInt(numFeatures);
                 if (!tabuList[indexAnt][rand1]) {
                     index = rand1;
@@ -282,18 +280,18 @@ public class IRRFSACO_1 implements FilterApproach {
     }
 
     /**
-     * chooses the next feature among unvisited features according to the
-     * state transition rules
+     * chooses the next feature among unvisited features according to the state
+     * transition rules
      *
      * @param indexAnt the index of the ant
      * @param currentSize the current size of the selected feature
-     * 
+     *
      * @return the index of the selected feature
      */
     private int stateTransitionRules(int indexAnt, int currentSize) {
         double q = new Random().nextDouble();
-//        double q = randNumber.nextDouble();
-        if (q <= probChooseEquation) {
+//        double q = RAND_NUMBER.nextDouble();
+        if (q <= PROB_CHOOSE_EQUATION) {
             return greedyRule(indexAnt, currentSize);
         } else {
             return probRule(indexAnt, currentSize);
@@ -304,10 +302,10 @@ public class IRRFSACO_1 implements FilterApproach {
      * updates intensity of pheromone values
      */
     private void pheromoneUpdatingRule() {
-        double sum = numAnts * (numFeatOfAnt - 1);
+        double sum = NUM_ANTS * (NUM_FEAT_OF_ANT - 1);
 
         for (int i = 0; i < numFeatures; i++) {
-            pheromoneValues[i] = ((1 - decayRate) * pheromoneValues[i]) + (featureCounter[i] / sum);
+            pheromoneValues[i] = ((1 - DECAY_RATE) * pheromoneValues[i]) + (featureCounter[i] / sum);
         }
     }
 
@@ -318,12 +316,21 @@ public class IRRFSACO_1 implements FilterApproach {
      */
     @Override
     public void evaluateFeatures() {
-        antSubsetSelected = new int[numAnts][numFeatOfAnt];
+//        RAND_NUMBER = new Random(SEED_VALUE);
+        if (TEMP_NUM_FEAT_OF_ANT == 0) {
+            NUM_FEAT_OF_ANT = numSelectedFeature;
+        }
+
+        if (NUM_ANTS == 0) {
+            NUM_ANTS = numFeatures < 100 ? numFeatures : 100;
+        }
+
+        antSubsetSelected = new int[NUM_ANTS][NUM_FEAT_OF_ANT];
         relevanceFeature = new double[numFeatures];
         simValues = new double[(numFeatures * (numFeatures - 1)) / 2];
         featureCounter = new int[numFeatures];
-        tabuList = new boolean[numAnts][numFeatures];
-        currentState = new int[numAnts];
+        tabuList = new boolean[NUM_ANTS][numFeatures];
+        currentState = new int[NUM_ANTS];
         pheromoneValues = new double[numFeatures];
         int[] indecesFeature;
         int counter = 0;
@@ -344,14 +351,14 @@ public class IRRFSACO_1 implements FilterApproach {
         }
 
         //starts the feature selection process
-        for (int nc = 0; nc < maxIteration; nc++) {
+        for (int nc = 0; nc < MAX_ITERATION; nc++) {
             //System.out.println("          ------ Iteration " + nc + " -----");
 
             //sets the initial values of feature counter (FC) to zero
             Arrays.fill(featureCounter, 0);
 
             //sets the initial values of tabu list to false
-            for (int i = 0; i < numAnts; i++) {
+            for (int i = 0; i < NUM_ANTS; i++) {
                 Arrays.fill(tabuList[i], false);
             }
 
@@ -359,8 +366,8 @@ public class IRRFSACO_1 implements FilterApproach {
             setStartNode();
 
             //selects predefined number of features for all ants
-            for (int i = 1; i < numFeatOfAnt; i++) {
-                for (int k = 0; k < numAnts; k++) {
+            for (int i = 1; i < NUM_FEAT_OF_ANT; i++) {
+                for (int k = 0; k < NUM_ANTS; k++) {
                     int newFeature = stateTransitionRules(k, i);
                     tabuList[k][newFeature] = true;
                     antSubsetSelected[k][i] = newFeature;
@@ -385,28 +392,13 @@ public class IRRFSACO_1 implements FilterApproach {
     }
 
     /**
-     * This method return the subset of selected features by incremental 
-     * relevance-redundancy feature selection based on ant colony optimization,
-     * version1 (IRRFSACO_1) method
-     *
-     * @return an array of subset of selected features
+     * {@inheritDoc }
      */
     @Override
-    public int[] getSelectedFeatureSubset() {
-        return selectedFeatureSubset;
-    }
-
-    /**
-     * return the weights of features if the method gives weights of features
-     * individually and ranks them based on their relevance (i.e., feature
-     * weighting methods); otherwise, these values does not exist.
-     * <p>
-     * These values does not exist for IRRFSACO_1.
-     *
-     * @return an array of  weight of features
-     */
-    @Override
-    public double[] getValues() {
-        return null;
+    public String validate() {
+        if (NUM_ANTS > numFeatures || NUM_FEAT_OF_ANT > numFeatures) {
+            return "The parameter values of IRRFSACO_1 (number of ants or number of features for ant) are incorred.";
+        }
+        return "";
     }
 }

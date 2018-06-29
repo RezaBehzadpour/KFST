@@ -5,7 +5,7 @@
  * For more information about KFST, please visit:
  *     http://kfst.uok.ac.ir/index.html
  *
- * Copyright (C) 2016 KFST development team at University of Kurdistan,
+ * Copyright (C) 2016-2018 KFST development team at University of Kurdistan,
  * Sanandaj, Iran.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -25,18 +25,18 @@ package KFST.dataset;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+//import java.io.FileWriter;
+//import java.io.IOException;
+//import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+//import java.util.logging.Level;
+//import java.util.logging.Logger;
 import KFST.util.ArraysFunc;
 
 /**
- * This java class is used to keep the input data, split input data
- * to test/train sets and crate CSV file format.
+ * This java class is used to keep the input data, split input data to
+ * test/train sets and crate CSV file format.
  *
  * @author Sina Tabakhi
  */
@@ -67,18 +67,15 @@ public class DatasetInfo {
 
     /**
      * This method checks that the input string don't contain the semicolon(;)
-     * or tab characters. Also, its checks that the input string contains
-     * the comma character
+     * or tab characters. Also, its checks that the input string contains the
+     * comma character
      *
      * @param str the input string
-     * 
+     *
      * @return true if the input string is in the correct format
      */
     private boolean isCorrectString(String str) {
-        if (str.indexOf(',') != -1 && str.indexOf(';') == -1 && str.indexOf('	') == -1) {
-            return true;
-        }
-        return false;
+        return str.indexOf(',') != -1 && str.indexOf(';') == -1 && str.indexOf('	') == -1;
     }
 
     /**
@@ -308,7 +305,7 @@ public class DatasetInfo {
      * This method converts the String name of class labels to the integer value
      *
      * @param nameClass the name of the class labels as String
-     * 
+     *
      * @return the index of the class
      */
     private int indexClass(String nameClass) {
@@ -321,8 +318,8 @@ public class DatasetInfo {
     }
 
     /**
-     * This method converts and sets the string values of the input data
-     * to the double values
+     * This method converts and sets the string values of the input data to the
+     * double values
      */
     private void splitFeatureWithLabel() {
         checkSamplesClass = true;
@@ -341,9 +338,9 @@ public class DatasetInfo {
     }
 
     /**
-     * This method randomly splits the input dataset to the train/test sets
-     * 2/3 of the dataset is used as train set and
-     * 1/3 of the dataset is used as test set
+     * This method randomly splits the input dataset to the train/test sets 2/3
+     * of the dataset is used as train set and 1/3 of the dataset is used as
+     * test set
      */
     private void splitDataSetToTrainAndTest1() {
         int countTest = 0;
@@ -364,8 +361,8 @@ public class DatasetInfo {
     }
 
     /**
-     * This method sets the train/test sets
-     * train and test sets previously are split by user
+     * This method sets the train/test sets train and test sets previously are
+     * split by user
      */
     private void splitDataSetToTrainAndTest2() {
         for (int i = 0; i < numTrainSet; i++) {
@@ -396,8 +393,8 @@ public class DatasetInfo {
     }
 
     /**
-     * This is used to read datasets and class labels, split datasets and
-     * set their values
+     * This is used to read datasets and class labels, split datasets and set
+     * their values
      *
      * @param path1 the path of the train set
      * @param path2 the path of the test set
@@ -444,7 +441,7 @@ public class DatasetInfo {
 
     /**
      * This is used to return the status of train/test sets
-     * 
+     *
      * @return true if the train and test sets are compatible
      */
     public boolean isCompatibleTrainTestSet() {
@@ -452,10 +449,10 @@ public class DatasetInfo {
     }
 
     /**
-     * This is used to return number of samples in the dataset(train set +
-     * test set)
-     * 
-     * @return number of samples 
+     * This is used to return number of samples in the dataset(train set + test
+     * set)
+     *
+     * @return number of samples
      */
     public int getNumData() {
         return numData;
@@ -538,7 +535,7 @@ public class DatasetInfo {
      * feature array
      *
      * @param array the array of indices of the selected features
-     * 
+     *
      * @return a string of the integer array
      */
     public String createFeatNames(int[] array) {
@@ -548,69 +545,5 @@ public class DatasetInfo {
         }
         res += "}";
         return res;
-    }
-
-    /**
-     * This method creates a CSV (Comma delimited) file of the input data
-     *
-     * @param oldData the input data
-     * @param selectedFeature the list of selected Feature
-     * @param name name of the path for created CSV file
-     */
-    public void createCSVFile(double[][] oldData, int[] selectedFeature, String name) {
-        int numSamples = oldData.length;
-        int sizeFeatureSet = selectedFeature.length;
-        FileWriter fw = null;
-        try {
-            fw = new FileWriter(name, false);
-            PrintWriter pw = new PrintWriter(fw);
-            for (int i = 0; i < sizeFeatureSet; i++) {
-                pw.print(nameFeatures[selectedFeature[i]] + ",");
-            }
-            pw.println(nameFeatures[numFeature]);
-            for (int i = 0; i < numSamples; i++) {
-                for (int j = 0; j < sizeFeatureSet; j++) {
-                    pw.print(oldData[i][selectedFeature[j]] + ",");
-                }
-                int index = (int) oldData[i][numFeature];
-                pw.println(Classlabel[index]);
-            }
-            fw.close();
-        } catch (IOException ex) {
-            Logger.getLogger(DatasetInfo.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    /**
-     * This method creates a CSV (Comma delimited) file of the input data
-     *
-     * @param oldData the input data
-     * @param selectedFeature the list of selected Feature
-     * @param name name of the path for created CSV file
-     * @param featureNames a string array of the names of features
-     */
-    public void createCSVFile(double[][] oldData, int[] selectedFeature, String name, String[] featureNames) {
-        int numSamples = oldData.length;
-        int sizeFeatureSet = selectedFeature.length;
-        int numFeats = oldData[0].length - 1;
-        FileWriter fw = null;
-        try {
-            fw = new FileWriter(name, false);
-            PrintWriter pw = new PrintWriter(fw);
-            for (int i = 0; i < sizeFeatureSet; i++) {
-                pw.print(featureNames[selectedFeature[i]] + ",");
-            }
-            pw.println(featureNames[numFeats]);
-            for (int i = 0; i < numSamples; i++) {
-                for (int j = 0; j < sizeFeatureSet; j++) {
-                    pw.print(oldData[i][selectedFeature[j]] + ",");
-                }
-                int index = (int) oldData[i][numFeats];
-                pw.println(index);
-            }
-            fw.close();
-        } catch (IOException ex) {
-            Logger.getLogger(DatasetInfo.class.getName()).log(Level.SEVERE, null, ex);
-        }
     }
 }
